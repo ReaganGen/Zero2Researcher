@@ -1,0 +1,179 @@
+{
+ "name": "Zero2Researcher offline Wikipedia snippets",
+ "version": 2,
+ "description": "Short paraphrases (written for this course, 2026-10) of the named English Wikipedia articles, mostly of their lead sections; where a fact comes from another part of the article it is noted here: in 'Nucleic acid double helix', the 1953 publication in Nature by Watson and Crick is from the article's History section. 12 articles support the evaluation questions; the rest are distractors with overlapping keywords.",
+ "license": "This corpus is an adaptation of text from English Wikipedia, (c) Wikipedia contributors (https://en.wikipedia.org; the original article and its list of authors are at each item's url and its page history). Changes: paraphrased and shortened by the Zero2Researcher course authors, 2026-10. Like the original, this adaptation is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/",
+ "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+ "articles": [
+  {
+   "title": "Attention Is All You Need",
+   "summary": "Attention Is All You Need is a 2017 research paper by eight scientists at Google that introduced the Transformer, a neural network architecture built on attention mechanisms instead of recurrence. It was presented at the NeurIPS 2017 conference and is regarded as a foundation of modern large language models.",
+   "url": "https://en.wikipedia.org/wiki/Attention_Is_All_You_Need"
+  },
+  {
+   "title": "Nucleic acid double helix",
+   "summary": "In molecular biology, the double helix is the structure formed by the two strands of a DNA molecule. The double-helix model of DNA was first published by James Watson and Francis Crick in the journal Nature in 1953, building on X-ray diffraction work by Rosalind Franklin and Maurice Wilkins.",
+   "url": "https://en.wikipedia.org/wiki/Nucleic_acid_double_helix"
+  },
+  {
+   "title": "Alexander Fleming",
+   "summary": "Sir Alexander Fleming (1881-1955) was a Scottish physician and microbiologist. He discovered penicillin in 1928, the first widely effective antibiotic substance, and shared the 1945 Nobel Prize in Physiology or Medicine with Howard Florey and Ernst Chain.",
+   "url": "https://en.wikipedia.org/wiki/Alexander_Fleming"
+  },
+  {
+   "title": "ImageNet",
+   "summary": "ImageNet is a large visual database designed for research in visual object recognition, with more than 14 million hand-annotated images. Since 2010 the project has run an annual software contest, the ImageNet Large Scale Visual Recognition Challenge (ILSVRC), whose classification task uses 1,000 object categories.",
+   "url": "https://en.wikipedia.org/wiki/ImageNet"
+  },
+  {
+   "title": "Marie Curie",
+   "summary": "Marie Curie (1867-1934) was a Polish and naturalised-French physicist and chemist who conducted pioneering research on radioactivity. She shared the 1903 Nobel Prize in Physics with Pierre Curie and Henri Becquerel, and won the 1911 Nobel Prize in Chemistry, becoming the first person to win Nobel Prizes in two scientific fields.",
+   "url": "https://en.wikipedia.org/wiki/Marie_Curie"
+  },
+  {
+   "title": "Computing Machinery and Intelligence",
+   "summary": "Computing Machinery and Intelligence is a seminal paper by Alan Turing on artificial intelligence, published in 1950 in the journal Mind. It asks whether machines can think and proposes the imitation game, now known as the Turing test.",
+   "url": "https://en.wikipedia.org/wiki/Computing_Machinery_and_Intelligence"
+  },
+  {
+   "title": "Dartmouth workshop",
+   "summary": "In the summer of 1956, a group of researchers met at Dartmouth College for a workshop on artificial intelligence that John McCarthy, Marvin Minsky, Nathaniel Rochester and Claude Shannon had proposed. It is usually regarded as the starting point of AI as a research field.",
+   "url": "https://en.wikipedia.org/wiki/Dartmouth_workshop"
+  },
+  {
+   "title": "Deep Blue (chess computer)",
+   "summary": "Deep Blue was a chess-playing supercomputer developed by IBM. After losing a six-game match to world champion Garry Kasparov in 1996, it won the 1997 rematch, the first defeat of a reigning world champion by a computer under tournament conditions.",
+   "url": "https://en.wikipedia.org/wiki/Deep_Blue_(chess_computer)"
+  },
+  {
+   "title": "AlphaGo versus Lee Sedol",
+   "summary": "AlphaGo versus Lee Sedol was a five-game Go match between DeepMind's computer program AlphaGo and the South Korean professional Go player Lee Sedol, played in Seoul in March 2016. AlphaGo won four of the five games.",
+   "url": "https://en.wikipedia.org/wiki/AlphaGo_versus_Lee_Sedol"
+  },
+  {
+   "title": "AlexNet",
+   "summary": "AlexNet is a convolutional neural network designed by Alex Krizhevsky in collaboration with Ilya Sutskever and Geoffrey Hinton at the University of Toronto. It won the 2012 ImageNet Large Scale Visual Recognition Challenge with a top-5 error of 15.3%, more than 10.8 percentage points lower than the runner-up.",
+   "url": "https://en.wikipedia.org/wiki/AlexNet"
+  },
+  {
+   "title": "Speed of light",
+   "summary": "The speed of light in vacuum, commonly denoted c, is a universal physical constant exactly equal to 299,792,458 metres per second. The value is exact because, since 1983, the metre has been defined in terms of the speed of light.",
+   "url": "https://en.wikipedia.org/wiki/Speed_of_light"
+  },
+  {
+   "title": "Human Genome Project",
+   "summary": "The Human Genome Project was an international scientific research project to determine the base pairs that make up human DNA and to map the human genome. It was launched in 1990 and declared complete in 2003; a gapless sequence of the 22 autosomes and the X chromosome was published in 2022, and the complete Y chromosome followed in 2023.",
+   "url": "https://en.wikipedia.org/wiki/Human_Genome_Project"
+  },
+  {
+   "title": "Eiffel Tower",
+   "summary": "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, named after the engineer Gustave Eiffel, whose company designed and built it. It was completed in 1889 as the centrepiece of the 1889 World's Fair and is 330 metres tall.",
+   "url": "https://en.wikipedia.org/wiki/Eiffel_Tower"
+  },
+  {
+   "title": "BERT (language model)",
+   "summary": "BERT (Bidirectional Encoder Representations from Transformers) is a language model introduced in October 2018 by researchers at Google. It uses only the encoder of the Transformer and is pre-trained with masked language modelling and next-sentence prediction.",
+   "url": "https://en.wikipedia.org/wiki/BERT_(language_model)"
+  },
+  {
+   "title": "Generative pre-trained transformer",
+   "summary": "A generative pre-trained transformer (GPT) is a type of large language model based on the Transformer decoder, pre-trained on large text corpora to predict the next token. The first GPT model was introduced by OpenAI in 2018.",
+   "url": "https://en.wikipedia.org/wiki/Generative_pre-trained_transformer"
+  },
+  {
+   "title": "Rosalind Franklin",
+   "summary": "Rosalind Franklin (1920-1958) was an English chemist and X-ray crystallographer. Her X-ray diffraction images of DNA, including Photo 51 taken in 1952, were central to understanding the double-helix structure.",
+   "url": "https://en.wikipedia.org/wiki/Rosalind_Franklin"
+  },
+  {
+   "title": "Francis Crick",
+   "summary": "Francis Crick (1916-2004) was an English molecular biologist who, together with James Watson, proposed the double-helix structure of DNA in 1953. Crick, Watson and Maurice Wilkins shared the 1962 Nobel Prize in Physiology or Medicine.",
+   "url": "https://en.wikipedia.org/wiki/Francis_Crick"
+  },
+  {
+   "title": "Penicillin",
+   "summary": "Penicillins are a group of antibiotics originally obtained from Penicillium moulds. Penicillin was discovered in 1928 by the Scottish scientist Alexander Fleming, and its mass production began during the Second World War.",
+   "url": "https://en.wikipedia.org/wiki/Penicillin"
+  },
+  {
+   "title": "Pierre Curie",
+   "summary": "Pierre Curie (1859-1906) was a French physicist and a pioneer in crystallography, magnetism, piezoelectricity and radioactivity. He shared the 1903 Nobel Prize in Physics with his wife Marie Curie and Henri Becquerel.",
+   "url": "https://en.wikipedia.org/wiki/Pierre_Curie"
+  },
+  {
+   "title": "Nobel Prize",
+   "summary": "The Nobel Prizes are international awards established by the will of the Swedish chemist Alfred Nobel. They were first awarded in 1901 in physics, chemistry, physiology or medicine, literature and peace.",
+   "url": "https://en.wikipedia.org/wiki/Nobel_Prize"
+  },
+  {
+   "title": "Alan Turing",
+   "summary": "Alan Turing (1912-1954) was an English mathematician and computer scientist, widely considered to be the father of theoretical computer science. During the Second World War he worked at Bletchley Park on breaking German ciphers.",
+   "url": "https://en.wikipedia.org/wiki/Alan_Turing"
+  },
+  {
+   "title": "Turing test",
+   "summary": "The Turing test, originally called the imitation game by Alan Turing in 1950, is a test of a machine's ability to exhibit intelligent behaviour indistinguishable from that of a human.",
+   "url": "https://en.wikipedia.org/wiki/Turing_test"
+  },
+  {
+   "title": "John McCarthy (computer scientist)",
+   "summary": "John McCarthy (1927-2011) was an American computer scientist and one of the founders of artificial intelligence. He coined the term artificial intelligence and created the Lisp programming language.",
+   "url": "https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)"
+  },
+  {
+   "title": "Garry Kasparov",
+   "summary": "Garry Kasparov is a Russian chess grandmaster and former world chess champion, who held the title from 1985 until 2000.",
+   "url": "https://en.wikipedia.org/wiki/Garry_Kasparov"
+  },
+  {
+   "title": "AlphaZero",
+   "summary": "AlphaZero is a computer program developed by DeepMind, announced in 2017, that taught itself to play chess, shogi and Go at a superhuman level through self-play reinforcement learning.",
+   "url": "https://en.wikipedia.org/wiki/AlphaZero"
+  },
+  {
+   "title": "Geoffrey Hinton",
+   "summary": "Geoffrey Hinton is a British-Canadian computer scientist known for his work on artificial neural networks. A 1986 paper he co-authored with David Rumelhart and Ronald Williams popularised the backpropagation algorithm; he shared the 2018 Turing Award and the 2024 Nobel Prize in Physics.",
+   "url": "https://en.wikipedia.org/wiki/Geoffrey_Hinton"
+  },
+  {
+   "title": "LeNet",
+   "summary": "LeNet is a series of convolutional neural network architectures created at AT&T Bell Laboratories between 1988 and 1998 by a group centred on Yann LeCun. LeNet-5 was used to read handwritten digits, for example on bank cheques.",
+   "url": "https://en.wikipedia.org/wiki/LeNet"
+  },
+  {
+   "title": "MNIST database",
+   "summary": "The MNIST database is a large collection of handwritten digits commonly used for training and testing image classification systems. It contains 60,000 training images and 10,000 test images of 28 by 28 pixels.",
+   "url": "https://en.wikipedia.org/wiki/MNIST_database"
+  },
+  {
+   "title": "Mount Everest",
+   "summary": "Mount Everest is Earth's highest mountain above sea level, located in the Himalayas on the border between Nepal and China. Its elevation of 8,848.86 metres was most recently established in 2020 by Chinese and Nepali authorities.",
+   "url": "https://en.wikipedia.org/wiki/Mount_Everest"
+  },
+  {
+   "title": "Charles Darwin",
+   "summary": "Charles Darwin (1809-1882) was an English naturalist best known for the theory of evolution by natural selection, which he set out in his book On the Origin of Species, published in 1859.",
+   "url": "https://en.wikipedia.org/wiki/Charles_Darwin"
+  },
+  {
+   "title": "Gregor Mendel",
+   "summary": "Gregor Mendel (1822-1884) was a scientist and Augustinian friar who discovered the basic laws of heredity through experiments with pea plants, published in 1866.",
+   "url": "https://en.wikipedia.org/wiki/Gregor_Mendel"
+  },
+  {
+   "title": "CRISPR gene editing",
+   "summary": "CRISPR gene editing is a genetic engineering technique based on the CRISPR-Cas9 system of bacteria. In 2012 Jennifer Doudna and Emmanuelle Charpentier showed that it can be programmed to cut DNA at chosen sites, work for which they received the 2020 Nobel Prize in Chemistry.",
+   "url": "https://en.wikipedia.org/wiki/CRISPR_gene_editing"
+  },
+  {
+   "title": "AlphaFold",
+   "summary": "AlphaFold is an artificial intelligence program developed by DeepMind that predicts protein structures from amino acid sequences. AlphaFold 2 performed best in the CASP14 assessment in 2020, and Demis Hassabis and John Jumper shared the 2024 Nobel Prize in Chemistry for the work.",
+   "url": "https://en.wikipedia.org/wiki/AlphaFold"
+  },
+  {
+   "title": "Backpropagation",
+   "summary": "In machine learning, backpropagation computes the gradient of a loss function with respect to the weights of a neural network by applying the chain rule layer by layer, from the output backwards. It was popularised for training neural networks by Rumelhart, Hinton and Williams in 1986.",
+   "url": "https://en.wikipedia.org/wiki/Backpropagation"
+  }
+ ]
+}

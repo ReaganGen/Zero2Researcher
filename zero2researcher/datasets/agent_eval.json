@@ -1,0 +1,1287 @@
+{
+ "name": "Zero2Researcher week 19 agent evaluation set",
+ "version": 2,
+ "description": "20 questions with exact answers: 10 multi-step arithmetic word problems (2-3 calculator calls each) and 10 factual questions whose answers are in wiki_snippets.json (4 of them need a calculation after retrieval). Grade with zero2researcher.agents.grade(item, answer). Year-difference questions ask explicitly for the difference between two years (subtract the earlier year from the later one), so they do not depend on exact dates.",
+ "fields": {
+  "gold": "the answer; numbers are compared numerically (tolerance tol, default 1e-6)",
+  "aliases": "other accepted answers (string questions only)",
+  "source": "titles of the English Wikipedia articles that support the answer (lookup questions)",
+  "evidence": "strings a correct run must have seen in its tool outputs",
+  "ref_tool_calls": "tool calls in the reference agent trajectory",
+  "mock": "scripted behaviour of zero2researcher.agents.MockLLM (not used for grading)"
+ },
+ "items": [
+  {
+   "id": "a01",
+   "type": "arithmetic",
+   "question": "Pencils cost 3 yuan each. Tom buys 17 pencils and pays with a 100-yuan note. How much change, in yuan, does he get?",
+   "gold": 49,
+   "unit": "yuan",
+   "solution": "3 * 17 = 51; 100 - 51 = 49",
+   "source": [],
+   "evidence": [
+    "49"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "First the cost of the pencils.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "3 * 17"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Now the change from 100 yuan.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "100 - 51"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The pencils cost 51 yuan, so Tom gets 49 yuan back.\nFinal answer: 49"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "100 - 3 * 17",
+     "answer": "The calculation gives the answer.\nFinal answer: 49"
+    },
+    "direct": "Final answer: 49",
+    "guess": "51",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "100 - 3 + 17"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 100 - 51 = 49 yuan"
+   }
+  },
+  {
+   "id": "a02",
+   "type": "arithmetic",
+   "question": "A train travels at 84 km/h for 2.5 hours and then at 60 km/h for 1.5 hours. What is the total distance it travels, in km?",
+   "gold": 300,
+   "unit": "km",
+   "solution": "84 * 2.5 = 210; 60 * 1.5 = 90; 210 + 90 = 300",
+   "source": [],
+   "evidence": [
+    "300"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "The two legs are independent, so I compute both distances at once.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "84 * 2.5"
+        }
+       },
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "60 * 1.5"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Add the two legs.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "210 + 90"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The train covers 210 km and then 90 km, 300 km in total.\nFinal answer: 300"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "84 * 2.5 + 60 * 1.5",
+     "answer": "The calculation gives the answer.\nFinal answer: 300"
+    },
+    "direct": "Final answer: 300",
+    "guess": "330",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "84 * 2.5 + 60"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 210 + 90 = 300 km"
+   }
+  },
+  {
+   "id": "a03",
+   "type": "arithmetic",
+   "question": "A rectangular sheet is 23 cm long and 17 cm wide. A square with sides of 9 cm is cut out of it. What area remains, in square centimetres?",
+   "gold": 310,
+   "unit": "cm^2",
+   "solution": "23 * 17 = 391; 9 ** 2 = 81; 391 - 81 = 310",
+   "source": [],
+   "evidence": [
+    "310"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "Area of the sheet first.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "23 * 17"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Area of the square that is cut out.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "9 ** 2"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Subtract.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "391 - 81"
+        }
+       }
+      ]
+     },
+     {
+      "text": "391 minus 81 leaves 310 square centimetres.\nFinal answer: 310"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "23 * 17 - 9 ** 2",
+     "answer": "The calculation gives the answer.\nFinal answer: 310"
+    },
+    "direct": "Final answer: 310",
+    "guess": "382",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "23 * 17 - 9"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 391 - 81 = 310 square centimetres"
+   }
+  },
+  {
+   "id": "a04",
+   "type": "arithmetic",
+   "question": "Lily saves 45 dollars every week for 12 weeks, then spends 30% of her savings on a bicycle. How many dollars does she have left?",
+   "gold": 378,
+   "unit": "dollars",
+   "solution": "45 * 12 = 540; 540 * (1 - 0.30) = 378",
+   "source": [],
+   "evidence": [
+    "378"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "Total savings first.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "45 * 12"
+        }
+       }
+      ]
+     },
+     {
+      "text": "She keeps 70% of it.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "540 * (1 - 0.30)"
+        }
+       }
+      ]
+     },
+     {
+      "text": "She saved 540 dollars and keeps 70% of it, 378 dollars.\nFinal answer: 378"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "45 * 12 * (1 - 0.30)",
+     "answer": "The calculation gives the answer.\nFinal answer: 378"
+    },
+    "direct": "Spending 30% of 540 leaves 368 dollars.\nFinal answer: 368",
+    "guess": "162",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "45 * 12 * 0.30"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 540 - 162 = 378 dollars"
+   }
+  },
+  {
+   "id": "a05",
+   "type": "arithmetic",
+   "question": "There are 7 boxes with 48 apples in each. 59 apples are rotten and thrown away, and the rest are packed into bags of 13 apples. How many full bags can be packed?",
+   "gold": 21,
+   "unit": "bags",
+   "solution": "7 * 48 = 336; 336 - 59 = 277; 277 / 13 = 21.3 -> 21 full bags",
+   "source": [],
+   "evidence": [
+    "21.3076923077"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "Count all apples first.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "7 * 48"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Remove the rotten ones.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "336 - 59"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Divide into bags of 13.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "277 / 13"
+        }
+       }
+      ]
+     },
+     {
+      "text": "277 / 13 is about 21.3, so only 21 bags are full.\nFinal answer: 21"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "(7 * 48 - 59) / 13",
+     "answer": "The calculation gives the answer.\nFinal answer: 21"
+    },
+    "direct": "277 / 13 is about 21.3.\nFinal answer: 21.3",
+    "guess": "25",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "7 * 48 / 13"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: about 21.3, so 21 full bags"
+   }
+  },
+  {
+   "id": "a06",
+   "type": "arithmetic",
+   "question": "A baker has 4.6 kg of flour. Each cake needs 250 g of flour, and she bakes as many whole cakes as she can. She sells every cake for 18 yuan. How much money, in yuan, does she make?",
+   "gold": 324,
+   "unit": "yuan",
+   "solution": "4.6 * 1000 = 4600 g; 4600 / 250 = 18.4 -> 18 cakes; 18 * 18 = 324",
+   "source": [],
+   "evidence": [
+    "324"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "Convert kilograms to grams.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "4.6 * 1000"
+        }
+       }
+      ]
+     },
+     {
+      "text": "How many cakes can she bake?",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "4600 / 250"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Only 18 whole cakes; now the money.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "18 * 18"
+        }
+       }
+      ]
+     },
+     {
+      "text": "She can bake 18 whole cakes and earns 324 yuan.\nFinal answer: 324"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "18 * 18",
+     "answer": "The calculation gives the answer.\nFinal answer: 324"
+    },
+    "direct": "That is 18.4 cakes, so 18.4 * 18 = 331.2 yuan.\nFinal answer: 331.2",
+    "guess": "331",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "4.6 * 1000 / 250 * 18"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 18 cakes x 18 yuan = 324 yuan"
+   }
+  },
+  {
+   "id": "a07",
+   "type": "arithmetic",
+   "question": "A phone plan costs 39 yuan per month plus 0.15 yuan for every minute beyond the first 300 minutes. Mia talks for 420 minutes this month. What is her bill, in yuan?",
+   "gold": 57,
+   "unit": "yuan",
+   "solution": "420 - 300 = 120; 120 * 0.15 = 18; 39 + 18 = 57",
+   "source": [],
+   "evidence": [
+    "57"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "Minutes beyond the allowance.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "420 - 300"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Cost of the extra minutes.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "120 * 0.15"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Add the monthly fee.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "39 + 18"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The extra 120 minutes cost 18 yuan, so the bill is 57 yuan.\nFinal answer: 57"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "39 + (420 - 300) * 0.15",
+     "answer": "The calculation gives the answer.\nFinal answer: 57"
+    },
+    "direct": "The bill is 39 + 420 * 0.15 = 102 yuan.\nFinal answer: 102",
+    "guess": "102",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "39 + 420 * 0.15"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 39 + 18 = 57 yuan"
+   }
+  },
+  {
+   "id": "a08",
+   "type": "arithmetic",
+   "question": "A cyclist rides 18 km in 45 minutes. Riding at the same speed, how many km does she cover in 2 hours?",
+   "gold": 48,
+   "unit": "km",
+   "solution": "18 / 45 = 0.4 km per minute; 2 hours = 120 minutes; 0.4 * 120 = 48",
+   "source": [],
+   "evidence": [
+    "48"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "Speed in km per minute.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "18 / 45"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Two hours are 120 minutes.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "0.4 * 120"
+        }
+       }
+      ]
+     },
+     {
+      "text": "At 0.4 km per minute she covers 48 km in 2 hours.\nFinal answer: 48"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "18 / 45 * 120",
+     "answer": "The calculation gives the answer.\nFinal answer: 48"
+    },
+    "direct": "Final answer: 48",
+    "guess": "24",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "18 / 45 * 2"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 24 km/h for 2 h = 48 km"
+   }
+  },
+  {
+   "id": "a09",
+   "type": "arithmetic",
+   "question": "Notebooks normally cost 12 yuan each. During a sale every notebook is 25% off, and a customer buys 14 notebooks. How much does the customer pay, in yuan?",
+   "gold": 126,
+   "unit": "yuan",
+   "solution": "12 * (1 - 0.25) = 9; 9 * 14 = 126",
+   "source": [],
+   "evidence": [
+    "126"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "Sale price of one notebook.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "12 * (1 - 0.25)"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Price of 14 notebooks.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "9 * 14"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Each notebook costs 9 yuan on sale, 126 yuan for 14.\nFinal answer: 126"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "12 * (1 - 0.25) * 14",
+     "answer": "The calculation gives the answer.\nFinal answer: 126"
+    },
+    "direct": "Final answer: 126",
+    "guess": "132",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "12 * 0.25 * 14"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 9 yuan each, 126 yuan in total"
+   }
+  },
+  {
+   "id": "a10",
+   "type": "arithmetic",
+   "question": "A bacteria culture doubles every 3 hours. It starts with 500 cells. How many cells are there after 15 hours?",
+   "gold": 16000,
+   "unit": "cells",
+   "solution": "15 / 3 = 5 doublings; 2 ** 5 = 32; 500 * 32 = 16000",
+   "source": [],
+   "evidence": [
+    "16000"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "Number of doublings.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "15 / 3"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Growth factor after 5 doublings.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "2 ** 5"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Multiply by the starting count.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "500 * 32"
+        }
+       }
+      ]
+     },
+     {
+      "text": "After 5 doublings there are 32 times as many cells: 16000.\nFinal answer: 16000"
+     }
+    ],
+    "workflow": {
+     "route": "ARITHMETIC",
+     "queries": [],
+     "expression": "500 * 2 ** (15 / 3)",
+     "answer": "The calculation gives the answer.\nFinal answer: 16000"
+    },
+    "direct": "Final answer: 16000",
+    "guess": "8000",
+    "bad_args": {
+     "call": {
+      "name": "calculator",
+      "input": {
+       "expression": "500 * 2 * 5"
+      }
+     },
+     "final": "The calculator gives {last}.\nFinal answer: {last}"
+    },
+    "format_variant": "Final answer: 500 x 2^5 = 16,000 cells"
+   }
+  },
+  {
+   "id": "f01",
+   "type": "lookup",
+   "question": "In which year was 'Attention Is All You Need', the paper that introduced the Transformer architecture, published?",
+   "gold": 2017,
+   "solution": "Attention Is All You Need: 2017",
+   "source": [
+    "Attention Is All You Need"
+   ],
+   "evidence": [
+    "2017"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "I should look this paper up.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Attention Is All You Need Transformer"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The encyclopedia says the paper was published in 2017.\nFinal answer: 2017"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "Attention Is All You Need Transformer"
+     ],
+     "expression": "NONE",
+     "answer": "The notes date the paper to 2017.\nFinal answer: 2017"
+    },
+    "direct": "Final answer: 2017",
+    "guess": "2018",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "BERT bidirectional encoder"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 2018"
+    },
+    "format_variant": "Final answer: 12 June 2017"
+   }
+  },
+  {
+   "id": "f02",
+   "type": "lookup",
+   "question": "In which year did James Watson and Francis Crick publish their double-helix model of DNA?",
+   "gold": 1953,
+   "solution": "Nucleic acid double helix: 1953",
+   "source": [
+    "Nucleic acid double helix"
+   ],
+   "evidence": [
+    "1953"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me search for the double-helix paper.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "DNA double helix Watson Crick"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Watson and Crick published the model in Nature in 1953.\nFinal answer: 1953"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "DNA double helix Watson Crick"
+     ],
+     "expression": "NONE",
+     "answer": "The notes say the model was published in 1953.\nFinal answer: 1953"
+    },
+    "direct": "Final answer: 1953",
+    "guess": "1952",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Photo 51"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 1952"
+    },
+    "format_variant": "Final answer: 25 April 1953"
+   }
+  },
+  {
+   "id": "f03",
+   "type": "lookup",
+   "question": "Who discovered penicillin?",
+   "gold": "Alexander Fleming",
+   "solution": "Alexander Fleming (1928)",
+   "source": [
+    "Alexander Fleming"
+   ],
+   "evidence": [
+    "Alexander Fleming"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me look up who discovered penicillin.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "discovered penicillin"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Penicillin was discovered in 1928 by Alexander Fleming.\nFinal answer: Alexander Fleming"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "discovered penicillin"
+     ],
+     "expression": "NONE",
+     "answer": "The notes name Alexander Fleming.\nFinal answer: Alexander Fleming"
+    },
+    "direct": "Final answer: Alexander Fleming",
+    "guess": "Louis Pasteur",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Louis Pasteur vaccine"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: Louis Pasteur"
+    },
+    "format_variant": "Final answer: Alexander Fleming (in 1928)"
+   },
+   "aliases": [
+    "Fleming",
+    "Sir Alexander Fleming"
+   ]
+  },
+  {
+   "id": "f04",
+   "type": "lookup",
+   "question": "In which year was the first ImageNet Large Scale Visual Recognition Challenge (ILSVRC) held?",
+   "gold": 2010,
+   "solution": "ImageNet: annual ILSVRC since 2010",
+   "source": [
+    "ImageNet"
+   ],
+   "evidence": [
+    "2010"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me look up the ImageNet challenge.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "ImageNet Large Scale Visual Recognition Challenge"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The ImageNet challenge has been held every year since 2010.\nFinal answer: 2010"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "ImageNet Large Scale Visual Recognition Challenge"
+     ],
+     "expression": "NONE",
+     "answer": "The notes say the contest began in 2010.\nFinal answer: 2010"
+    },
+    "direct": "Final answer: 2010",
+    "guess": "2012",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "AlexNet winner Toronto"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 2012"
+    },
+    "format_variant": "Final answer: 1st ILSVRC, held in 2010"
+   }
+  },
+  {
+   "id": "f05",
+   "type": "lookup",
+   "question": "Marie Curie won two Nobel Prizes. How many years passed between the first and the second?",
+   "gold": 8,
+   "solution": "Marie Curie: 1903 (Physics), 1911 (Chemistry); 1911 - 1903 = 8",
+   "source": [
+    "Marie Curie"
+   ],
+   "evidence": [
+    "1903",
+    "1911"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "I need the years of both prizes.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Marie Curie Nobel Prize"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Her prizes were in 1903 and 1911.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "1911 - 1903"
+        }
+       }
+      ]
+     },
+     {
+      "text": "1911 minus 1903 is 8 years.\nFinal answer: 8"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "Marie Curie Nobel Prize"
+     ],
+     "expression": "1911 - 1903",
+     "answer": "The prizes were in 1903 and 1911.\nFinal answer: 8"
+    },
+    "direct": "Final answer: 8",
+    "guess": "10",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "piezoelectricity crystallography"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 10"
+    },
+    "format_variant": "Final answer: 1911 - 1903 = 8 years"
+   }
+  },
+  {
+   "id": "f06",
+   "type": "lookup",
+   "question": "What is the difference between the year Alan Turing's paper 'Computing Machinery and Intelligence' was published and the year of the Dartmouth workshop on artificial intelligence? Subtract the earlier year from the later one.",
+   "gold": 6,
+   "solution": "Computing Machinery and Intelligence: 1950; Dartmouth workshop: 1956; 1956 - 1950 = 6",
+   "source": [
+    "Computing Machinery and Intelligence",
+    "Dartmouth workshop"
+   ],
+   "evidence": [
+    "1950",
+    "1956"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "I need two years; I will search for both at once.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Computing Machinery and Intelligence Turing"
+        }
+       },
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Dartmouth workshop artificial intelligence"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The paper is from 1950 and the workshop from 1956.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "1956 - 1950"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The workshop came 6 years after the paper.\nFinal answer: 6"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "Computing Machinery and Intelligence Turing",
+      "Dartmouth workshop artificial intelligence"
+     ],
+     "expression": "1956 - 1950",
+     "answer": "The paper is from 1950 and the workshop from 1956.\nFinal answer: 6"
+    },
+    "direct": "Turing's paper came out in 1950 and the Dartmouth workshop was in 1955, so the difference is 5.\nFinal answer: 5",
+    "guess": "5",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Turing test imitation game"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 5"
+    },
+    "format_variant": "Final answer: 1956 - 1950 = 6"
+   }
+  },
+  {
+   "id": "f07",
+   "type": "lookup",
+   "question": "What is the difference between the year IBM's Deep Blue won its match against Garry Kasparov and the year AlphaGo beat Lee Sedol? Subtract the earlier year from the later one.",
+   "gold": 19,
+   "solution": "Deep Blue: 1997 rematch; AlphaGo versus Lee Sedol: 2016; 2016 - 1997 = 19",
+   "source": [
+    "Deep Blue (chess computer)",
+    "AlphaGo versus Lee Sedol"
+   ],
+   "evidence": [
+    "1997",
+    "2016"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 3,
+   "mock": {
+    "agent": [
+     {
+      "text": "I need both match years; searching for both.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Deep Blue Kasparov"
+        }
+       },
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "AlphaGo Lee Sedol"
+        }
+       }
+      ]
+     },
+     {
+      "text": "Deep Blue won in 1997 and AlphaGo in 2016.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "2016 - 1997"
+        }
+       }
+      ]
+     },
+     {
+      "text": "2016 minus 1997 is 19 years.\nFinal answer: 19"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "Deep Blue Kasparov",
+      "AlphaGo Lee Sedol"
+     ],
+     "expression": "2016 - 1997",
+     "answer": "Deep Blue won in 1997 and AlphaGo won in 2016.\nFinal answer: 19"
+    },
+    "direct": "Final answer: 19",
+    "guess": "20",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Garry Kasparov world champion"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 20"
+    },
+    "format_variant": "Final answer: 2016 - 1997 = 19 years"
+   }
+  },
+  {
+   "id": "f08",
+   "type": "lookup",
+   "question": "What top-5 error rate, in percent, did AlexNet achieve when it won the 2012 ImageNet challenge?",
+   "gold": 15.3,
+   "unit": "percent",
+   "solution": "AlexNet: top-5 error 15.3%",
+   "source": [
+    "AlexNet"
+   ],
+   "evidence": [
+    "15.3"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me look up AlexNet.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "AlexNet ImageNet top-5 error"
+        }
+       }
+      ]
+     },
+     {
+      "text": "AlexNet reached a top-5 error of 15.3%.\nFinal answer: 15.3"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "AlexNet ImageNet top-5 error"
+     ],
+     "expression": "NONE",
+     "answer": "The notes give a top-5 error of 15.3%.\nFinal answer: 15.3"
+    },
+    "direct": "Final answer: 15.4",
+    "guess": "17.0",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Yann LeCun Bell Laboratories"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 17.0"
+    },
+    "format_variant": "Final answer: top-5 error 15.3%"
+   },
+   "tol": 0.01
+  },
+  {
+   "id": "f09",
+   "type": "lookup",
+   "question": "What is the exact speed of light in vacuum, in metres per second?",
+   "gold": 299792458,
+   "unit": "m/s",
+   "solution": "Speed of light: 299,792,458 m/s (exact)",
+   "source": [
+    "Speed of light"
+   ],
+   "evidence": [
+    "299,792,458"
+   ],
+   "needs_calculation": false,
+   "ref_tool_calls": 1,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me look up the defined value.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "speed of light vacuum"
+        }
+       }
+      ]
+     },
+     {
+      "text": "The speed of light is exactly 299,792,458 metres per second.\nFinal answer: 299792458"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "speed of light vacuum"
+     ],
+     "expression": "NONE",
+     "answer": "The notes give the exact value 299,792,458 m/s.\nFinal answer: 299792458"
+    },
+    "direct": "Final answer: 299792458",
+    "guess": "300000000",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "photon energy"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 300000000"
+    },
+    "format_variant": "Final answer: 299 792 458 m/s"
+   }
+  },
+  {
+   "id": "f10",
+   "type": "lookup",
+   "question": "What is the difference between the year the Human Genome Project was launched and the year it was declared complete? Subtract the earlier year from the later one.",
+   "gold": 13,
+   "solution": "Human Genome Project: 1990 -> 2003; 13 years",
+   "source": [
+    "Human Genome Project"
+   ],
+   "evidence": [
+    "1990",
+    "2003"
+   ],
+   "needs_calculation": true,
+   "ref_tool_calls": 2,
+   "mock": {
+    "agent": [
+     {
+      "text": "Let me look up the project's dates.",
+      "tool_calls": [
+       {
+        "name": "wiki_search",
+        "input": {
+         "query": "Human Genome Project"
+        }
+       }
+      ]
+     },
+     {
+      "text": "It was launched in 1990 and declared complete in 2003.",
+      "tool_calls": [
+       {
+        "name": "calculator",
+        "input": {
+         "expression": "2003 - 1990"
+        }
+       }
+      ]
+     },
+     {
+      "text": "2003 minus 1990 is 13 years.\nFinal answer: 13"
+     }
+    ],
+    "workflow": {
+     "route": "LOOKUP",
+     "queries": [
+      "Human Genome Project"
+     ],
+     "expression": "2003 - 1990",
+     "answer": "The project ran from 1990 to 2003.\nFinal answer: 13"
+    },
+    "direct": "Final answer: 13",
+    "guess": "15",
+    "bad_args": {
+     "call": {
+      "name": "wiki_search",
+      "input": {
+       "query": "Gregor Mendel heredity"
+      }
+     },
+     "final": "The search results did not mention it directly, so I estimate.\nFinal answer: 15"
+    },
+    "format_variant": "Final answer: 2003 - 1990 = 13 years"
+   }
+  }
+ ]
+}
