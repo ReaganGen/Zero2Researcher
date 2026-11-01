@@ -4,7 +4,7 @@
 需要跑模型的检查一律在内部新建一个 agents.MockLLM（不联网、不花钱、结果确定），
 所以即使你在 Colab 上配了 Claude 的密钥，检查也不会产生费用。
 
-结果字典的约定（课堂与作业通用）：run_agent / run_workflow 返回
+结果字典的约定（讲义与作业通用）：run_agent / run_workflow 返回
     {"answer": 正常结束时最后一条回复的文字（否则 None）, "llm_calls": int, "tool_calls": int,
      "input_tokens": int, "output_tokens": int, "trace": [每次工具调用的记录],
      "stop_reason": 最后一次调用的 stop_reason,
@@ -400,7 +400,7 @@ def eval_table(results, summary=None):
 
 # ---------- 失败分析 ----------
 def failure_case(case_id):
-    """课堂练习用：返回 (题目, 注入了某种故障的 MockLLM)。故障类型请你读轨迹后自己判断
+    """练习用：返回 (题目, 注入了某种故障的 MockLLM)。故障类型请你读轨迹后自己判断
     （这个 MockLLM 的 faults 属性只显示 "custom"，不告诉你注入了什么）。"""
     if case_id not in _EXERCISE_CASES:
         raise KeyError(f"练习里的案例编号是 {sorted(_EXERCISE_CASES)}")

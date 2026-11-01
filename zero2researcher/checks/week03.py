@@ -10,7 +10,7 @@ from . import report, close, safe_call
 from .. import data
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 def _titanic():
     return data.load_titanic()
 
@@ -40,7 +40,7 @@ def _compare_dict(name, got, exp, hint, tol=1e-3):
     return report(name, True)
 
 
-# ---------- 课堂/作业：Pandas ----------
+# ---------- 讲义/作业：Pandas ----------
 def survival_by_sex(obj):
     exp = _titanic().groupby("sex")["survived"].mean().to_dict()
     return _compare_dict("按性别的生还率", _as_dict(obj), exp,
@@ -115,7 +115,7 @@ def age_filled(s):
                   "用中位数（28.0）填充：fillna(titanic[\"age\"].median())")
 
 
-# ---------- 课堂/练习：类 ----------
+# ---------- 讲义/练习：类 ----------
 def bank_account(cls):
     name = "BankAccount"
     ok, acct = safe_call(name, cls, "Ada", 100)
@@ -178,7 +178,7 @@ def tabular_dataset(cls):
     return report(name, True)
 
 
-# ---------- 课堂：第一个分类器 ----------
+# ---------- 讲义：第一个分类器 ----------
 def iris_accuracy(acc):
     name = "Iris 准确率"
     try:

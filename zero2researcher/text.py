@@ -1,7 +1,7 @@
 """Word-level text preprocessing for the IMDB weeks (10, 11, 13, 14).
 
 课程不教但绕不开的部分：把影评切成词、建词表、转成等长的整数矩阵。
-第12周的字符级分词（stoi / itos）由学生自己写，不在这里。
+第12周的字符级分词（stoi / itos）由学习者自己写，不在这里。
 
 Typical use:
     from zero2researcher import text

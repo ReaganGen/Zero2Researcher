@@ -14,7 +14,7 @@ from . import report, close, safe_call
 from .. import data
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 def _digits():
     from sklearn.datasets import load_digits
     d = load_digits()
@@ -99,7 +99,7 @@ def _in_range(name, value, lo, hi, hint=None):
                   f"期望落在 [{lo}, {hi}]，实际 {v:.4f}", hint)
 
 
-# ---------- 课堂 ----------
+# ---------- 讲义 ----------
 def pca_evr(evr2):
     evr2 = np.asarray(evr2, dtype=float).ravel()
     if evr2.shape != (2,):
@@ -175,7 +175,7 @@ def leak_inflated_accuracy(acc):
 # 向量化器在 train + test 上 fit 这一处，修与不修的准确率几乎相同（0.8618 / 0.8635 vs 0.8635）。
 # 所以 leak_fixed 分别检查：① 分类器的输入只有词表特征；② 评估用的测试集与训练集没有重复、且没有多删；
 # ③ 向量化器的词表与 idf 与"同样参数、只在训练集上 fit"一致；④ fixed_acc 确由这三个部件算出、且接近参考值。
-# 提示只指向"症状 → 下一步该查什么"，不直接说出修法（答案在教师版的参考答案格）。
+# 提示只指向"症状 → 下一步该查什么"，不直接说出修法（答案只在开发仓库的参考答案格里）。
 # 同一项第 1 次没通过给第 1 级提示，之后给第 2 级（一个诊断实验）。
 _LEAK_HINTS = {
     "features": ("除了影评文本，模型还在用别的信息。把 make_features 拼出来的每一列都列出来，逐列问自己："

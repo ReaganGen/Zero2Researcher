@@ -13,7 +13,7 @@ import random
 from . import report, close, safe_call
 
 
-# ---------- 参考实现（教师实现，micrograd engine.py + tanh/exp） ----------
+# ---------- 参考实现（参考实现，micrograd engine.py + tanh/exp） ----------
 class _Value:
     """标量自动微分节点（参考答案，结构与 micrograd 的 engine.py 一致）。"""
 
@@ -168,7 +168,7 @@ class _MLP(_Module):
         return [p for layer in self.layers for p in layer.parameters()]
 
 
-# ---------- 通用：用学生的类搭表达式，与参考实现比对 ----------
+# ---------- 通用：用学习者的类搭表达式，与参考实现比对 ----------
 def _run_expr(name, Value, build, inputs, hint):
     ref_xs = [_Value(v) for v in inputs]
     ref_out = build(*ref_xs)
@@ -195,7 +195,7 @@ def _run_expr(name, Value, build, inputs, hint):
     return report(name, True)
 
 
-# ---------- 课堂 / 作业：Value 的各个运算 ----------
+# ---------- 讲义 / 作业：Value 的各个运算 ----------
 # 有新导数的运算（mul / tanh / pow / relu / exp）一律放在表达式**中间**：后面还要再乘一个不是 1 的数，
 # 这样它收到的 out.grad ≠ 1，"_backward 里忘了乘 out.grad"的实现才会算错梯度、被抓出来。
 # value_add 例外：它只用加法，保证 __mul__ 写错时不会连累加法的检查（加法的局部导数恒为 1）。
@@ -273,7 +273,7 @@ def gradient_reuse(Value):
                   "同一个节点被使用多次时，每条路径的梯度都要累加（+=）")
 
 
-# ---------- 课堂练习：纸上反向传播 ----------
+# ---------- 练习：纸上反向传播 ----------
 def paper_backprop(grad_a, grad_b, grad_c):
     """L = (a*b + c)**2，a=3, b=-1, c=5 时的三个梯度。"""
     name = "纸上反向传播 L=(a·b+c)²"
@@ -289,7 +289,7 @@ def paper_backprop(grad_a, grad_b, grad_c):
 
 # ---------- 梯度检查（CS231n 口径） ----------
 def numerical_grad(fn):
-    """学生的数值梯度函数：在 f(x) = x³ + 2x 上与解析值 3x² + 2 比对。"""
+    """学习者的数值梯度函数：在 f(x) = x³ + 2x 上与解析值 3x² + 2 比对。"""
     cases = [(2.0, 14.0), (-1.0, 5.0)]
     f = lambda x: x ** 3 + 2 * x  # noqa: E731
     for x, exp in cases:

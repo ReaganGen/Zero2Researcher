@@ -52,7 +52,7 @@ def _sdp_cases():
 
 
 def _sdp_hint(fn_values, q, k, v, mask):
-    """猜一猜学生最可能犯的错，给出有针对性的提示。"""
+    """猜一猜最可能犯的错，给出有针对性的提示。"""
     import torch
     d_k = q.size(-1)
     raw = q @ k.transpose(-2, -1)
@@ -76,7 +76,7 @@ def _sdp_hint(fn_values, q, k, v, mask):
 
 
 def scaled_dot_product(fn):
-    """学生的 scaled_dot_product(q, k, v, mask=None) → (values, attention)。"""
+    """学习者的 scaled_dot_product(q, k, v, mask=None) → (values, attention)。"""
     import torch
     import torch.nn.functional as F
     name = "scaled_dot_product"
@@ -109,7 +109,7 @@ def scaled_dot_product(fn):
 
 
 def masked_softmax(fn):
-    """学生的 masked_softmax(scores, mask)：mask 中 1 = 保留、0 = 遮住，遮住的位置概率必须恰好为 0。"""
+    """学习者的 masked_softmax(scores, mask)：mask 中 1 = 保留、0 = 遮住，遮住的位置概率必须恰好为 0。"""
     import torch
     name = "masked_softmax"
     scores = torch.tensor([[2.0, 1.0, 0.5, -1.0], [0.3, 0.3, 4.0, 1.0], [1.0, 2.0, 3.0, 4.0]])
@@ -137,7 +137,7 @@ def masked_softmax(fn):
 
 
 def hand_attention(weights, out):
-    """课堂练习 E1：第 2 个 token 的注意力权重（3 个数）与输出向量（2 个数）。"""
+    """练习 E1：第 2 个 token 的注意力权重（3 个数）与输出向量（2 个数）。"""
     name = "手算注意力（token 2）"
     Q = np.array([[0, 1, 0, 1], [2, 0, 2, 0], [1, 0, 0, 1]], dtype=float)
     K = np.array([[1, 0, 1, 0], [1, 1, 0, 0], [0, 0, 1, 1]], dtype=float)
@@ -171,7 +171,7 @@ def unscaled_std(std):
 
 # ---------- 多头注意力 ----------
 def _ref_mha_from(student, layout, scale="head", permute_in=True, permute_out=True):
-    """用学生模块的 qkv_proj / o_proj 权重重算输出。layout='uva'（每个头一段 [q|k|v]）或 'chunk'（先切 qkv）；
+    """用学习者模块的 qkv_proj / o_proj 权重重算输出。layout='uva'（每个头一段 [q|k|v]）或 'chunk'（先切 qkv）；
     其余参数用来模拟常见错误：scale='embed'（按 √embed_dim 缩放，gpt.py 视频版的写法）、
     permute_in=False（直接 reshape 成 (B, H, T, 3d)）、permute_out=False（合并前不 permute 回去）。"""
     import torch
@@ -211,9 +211,9 @@ _MHA_GUESSES = [
 
 
 def multihead_shapes(cls):
-    """学生的 MultiheadAttention(embed_dim, num_heads)：forward(x, mask=None, return_attention=False)。"""
+    """学习者的 MultiheadAttention(embed_dim, num_heads)：forward(x, mask=None, return_attention=False)。"""
     import torch
-    with torch.random.fork_rng(devices=[]):          # 不打乱学生 notebook 里的随机数序列
+    with torch.random.fork_rng(devices=[]):          # 不打乱学习者 notebook 里的随机数序列
         torch.manual_seed(0)
         return _multihead_shapes(cls)
 

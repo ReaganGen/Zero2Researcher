@@ -8,7 +8,7 @@ SENTENCE = "Machine learning is the study of algorithms that improve through exp
 WORDS = ["level", "python", "Racecar", "noon", "model"]
 
 
-# ---------- 参考计算（教师实现，学生无需阅读） ----------
+# ---------- 参考计算（参考实现，学习时无需阅读） ----------
 def _invalid():
     out = []
     for name, row in zip(data.load_names(), data.load_scores()):
@@ -53,7 +53,7 @@ def _compare_dict(name, student, expected, hint, tol=1e-4):
     return report(name, True)
 
 
-# ---------- 课堂 ----------
+# ---------- 讲义 ----------
 def fahrenheit(f):
     return report("摄氏转华氏", close(f, 98.6), f"37°C 应为 98.6°F，实际 {f}", "F = C × 9 / 5 + 32")
 

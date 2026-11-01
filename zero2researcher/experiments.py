@@ -1,6 +1,6 @@
 """Small helpers for the course's "minimal experiment unit" (week 6 onwards).
 
-课程不教但绕不开的部分：固定随机种子、汇总多种子结果。模型与实验本身由学生自己写。
+课程不教但绕不开的部分：固定随机种子、汇总多种子结果。模型与实验本身由学习者自己写。
 """
 import random
 

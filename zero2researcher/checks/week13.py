@@ -103,7 +103,7 @@ def message_passing(fn):
 
 
 def _adjacency_hint(A, got):
-    """常见错误的诊断：A 与学生结果都是 numpy。"""
+    """常见错误的诊断：A 与学习者的结果都是 numpy。"""
     n = len(A)
     deg = A.sum(axis=1)
     with np.errstate(divide="ignore"):
@@ -169,7 +169,7 @@ def normalized_adjacency(answer, A=None):
 
 
 def _find_weights(layer, in_dim, out_dim):
-    """在学生的层里找出唯一的 2 维权重（及可选的 bias），返回 (W 形如 (in, out), b 或 None)。"""
+    """在学习者的层里找出唯一的 2 维权重（及可选的 bias），返回 (W 形如 (in, out), b 或 None)。"""
     mats = [p for p in layer.parameters() if p.dim() == 2]
     vecs = [p for p in layer.parameters() if p.dim() == 1]
     if len(mats) != 1:
@@ -188,7 +188,7 @@ def _find_weights(layer, in_dim, out_dim):
 
 
 def gcn_layer(cls):
-    """学生的 GCNLayer(in_dim, out_dim)：forward(X, A_hat) 返回 Â X W（可带 bias，不带激活）。"""
+    """学习者的 GCNLayer(in_dim, out_dim)：forward(X, A_hat) 返回 Â X W（可带 bias，不带激活）。"""
     import torch
     name = "GCNLayer"
     torch.manual_seed(0)

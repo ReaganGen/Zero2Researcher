@@ -20,7 +20,7 @@ def _in_range(name, value, lo, hi, hint=None):
                   f"期望落在 [{lo}, {hi}]，实际 {v:.4f}", hint)
 
 
-# ---------- 课堂练习 ----------
+# ---------- 练习 ----------
 def tensor_shapes(a, b, c):
     """E1：reshape、转置、广播三件套。"""
     import torch

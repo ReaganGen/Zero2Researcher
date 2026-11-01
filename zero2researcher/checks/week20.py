@@ -1,7 +1,7 @@
 """第20周自查函数。用法：from zero2researcher.checks import week20 as ck; ck.final_checklist(deliverables)
 
 final_checklist 只检查交付物清单"填齐了没有、有没有明显不合格"（页数、种子数、是否一键跑通），
-不评判研究质量——质量由汇报、同伴评审与教师评分决定。
+不评判研究质量——质量要靠审稿表自审（或与学习伙伴互审）来判断。
 """
 import numbers
 import re
@@ -19,7 +19,7 @@ FIELDS = {
     "seeds": "主实验用的随机种子列表（至少 3 个）",
     "lab_notebook_link": "实验记录本链接",
     "lab_entries": "实验记录条数",
-    "slides_file": "汇报幻灯片（PDF）的文件名或链接",
+    "slides_file": "可选：讲解幻灯片或录屏的文件名或链接；没做讲解就填空字符串 \"\"",
     "baseline": "基线是什么（一句话）",
     "ablations": "做了哪些消融（列表，每项一句话）",
     "ai_use_statement": "报告里是否有 AI 助手使用声明（True/False）",
@@ -46,10 +46,12 @@ def final_checklist(d):
     missing = [k for k in FIELDS if k not in d]
     if missing:
         return report(name, False, f"缺少字段 {missing}", "；".join(f"{k}：{FIELDS[k]}" for k in missing))
-    for k in ("title", "report_file", "notebook_link", "hardware", "lab_notebook_link", "slides_file",
+    for k in ("title", "report_file", "notebook_link", "hardware", "lab_notebook_link",
               "baseline", "limitations"):
         if _blank(d[k]):
             return report(name, False, f"{k} 还没有填写", FIELDS[k])
+    if not isinstance(d["slides_file"], str):
+        return report(name, False, f"slides_file 应是字符串，实际 {d['slides_file']!r}", FIELDS["slides_file"])
     pages = d["report_pages"]
     if not _is_int(pages) or not 1 <= pages <= 4:
         return report(name, False, f"report_pages 应是 1–4 的整数，实际 {pages!r}",

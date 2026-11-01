@@ -135,9 +135,9 @@ def neural_bigram_nll(nll):
 
 # ---------- get_batch 与因果掩码 ----------
 def get_batch_shapes(fn):
-    """学生的 get_batch(data, block_size, batch_size) → (x, y)，y 是 x 右移一位。"""
+    """学习者的 get_batch(data, block_size, batch_size) → (x, y)，y 是 x 右移一位。"""
     import torch
-    with torch.random.fork_rng(devices=[]):          # 不打乱学生 notebook 里的随机数序列
+    with torch.random.fork_rng(devices=[]):          # 不打乱学习者 notebook 里的随机数序列
         torch.manual_seed(0)
         return _get_batch_shapes(fn)
 

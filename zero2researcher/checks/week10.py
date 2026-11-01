@@ -25,7 +25,7 @@ def _in_range(name, value, lo, hi, hint=None):
                   f"期望落在 [{lo}, {hi}]，实际 {v:.4f}", hint)
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 def _conv_out(W, K, P=0, S=1):
     """卷积 / 池化输出尺寸：floor((W − K + 2P) / S) + 1。"""
     return (W - K + 2 * P) // S + 1
@@ -44,7 +44,7 @@ def _ref_conv2d(img, kernel):
 
 
 def _exercise_cnn():
-    """课堂练习 E3 里那个小 CNN（MNIST 尺寸输入 1×28×28）。"""
+    """练习 E3 里那个小 CNN（MNIST 尺寸输入 1×28×28）。"""
     from torch import nn
     return nn.Sequential(
         nn.Conv2d(1, 8, kernel_size=3), nn.ReLU(), nn.MaxPool2d(2),
@@ -57,9 +57,9 @@ def _ref_param_count():
     return sum(p.numel() for p in _exercise_cnn().parameters())
 
 
-# ---------- 课堂练习：卷积的算术 ----------
+# ---------- 练习：卷积的算术 ----------
 def conv_output_size(fn):
-    """学生写的 conv_output_size(W, K, P, S)：在多组 (W, K, P, S) 上与公式比对。"""
+    """学习者写的 conv_output_size(W, K, P, S)：在多组 (W, K, P, S) 上与公式比对。"""
     name = "卷积输出尺寸 conv_output_size"
     cases = [
         (28, 3, 0, 1),    # MNIST，3×3，valid → 26
@@ -91,7 +91,7 @@ def conv_output_size(fn):
 
 
 def conv2d_numpy(fn):
-    """学生写的 conv2d_numpy(img, kernel)：与 torch.nn.functional.conv2d 逐元素比对（容差 1e-6）。"""
+    """学习者写的 conv2d_numpy(img, kernel)：与 torch.nn.functional.conv2d 逐元素比对（容差 1e-6）。"""
     import torch
     import torch.nn.functional as F
 
@@ -214,7 +214,7 @@ def textcnn_shapes(model):
     return report(name, True)
 
 
-# ---------- 课堂：训练结果（区间依据本机实测） ----------
+# ---------- 讲义：训练结果（区间依据本机实测） ----------
 def mnist_cnn_accuracy(acc):
     return _in_range("MNIST 小 CNN 测试准确率", acc, 0.96, 0.99,
                      "Conv(1→32,3×3,pad 1) → ReLU → MaxPool → Conv(32→64,3×3,pad 1) → ReLU → MaxPool → "

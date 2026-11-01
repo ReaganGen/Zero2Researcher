@@ -7,7 +7,7 @@
 - CartPole-v1 REINFORCE（策略网络 4→16→2、Adam 1e-2、γ = 1.0；"达标" = 最近 100 回合平均回报首次 ≥ 475，
   475 是 Gymnasium 注册表里 CartPole-v1 的 reward_threshold）；
 - MountainCar-v0 离散化表格 Q-learning 的三种奖励设计（势函数塑形函数本身另用构造的状态直接比对数值）。
-本模块只用 NumPy；学生函数返回 torch 张量时也能检查（用 .detach() 转换，无需 import torch）。
+本模块只用 NumPy；学习者的函数返回 torch 张量时也能检查（用 .detach() 转换，无需 import torch）。
 """
 import numpy as np
 
@@ -177,7 +177,7 @@ def bandit_final_reward(eps0, eps01, eps1, ucb):
 
 # ---------- S2 · MDP 与 Q-learning ----------
 def _bellman_guess(fn, Q0, cases):
-    """更新值不对时猜是哪种常见错误。在**全部**用例上重跑学生函数，只有每个用例都与某个错误公式吻合时
+    """更新值不对时猜是哪种常见错误。在**全部**用例上重跑学习者的函数，只有每个用例都与某个错误公式吻合时
     才给出对应提示——单个用例可能同时符合好几种错误（只有 2 个动作时，Q[s', a] 不是 max 就是 min）。"""
     got = []
     for s, a, r, s2, term, alpha, gamma in cases:
@@ -515,7 +515,7 @@ def potential_shaping(fn, potential, gamma):
                ((-0.3, 0.06), (-0.24, 0.065), False),
                ((0.47, 0.04), (0.51, 0.04), True),
                ((0.49, 0.02), (0.512, 0.022), True)]
-    rows = []                                       # (描述, terminated, Φ(s), Φ(s'), 学生的值)
+    rows = []                                       # (描述, terminated, Φ(s), Φ(s'), 学习者的值)
     for (x, v), (x2, v2), term in samples:
         obs = np.array([x, v], dtype=np.float32)    # 与 MountainCar 的观测同类型
         obs_next = np.array([x2, v2], dtype=np.float32)

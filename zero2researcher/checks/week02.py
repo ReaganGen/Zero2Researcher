@@ -11,7 +11,7 @@ from . import report, close, safe_call
 from .. import data
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 def _clean(word):
     return "".join(c for c in word.lower() if c.isalpha())
 
@@ -51,7 +51,7 @@ def _digits():
     return d.images, d.target
 
 
-# ---------- 课堂：函数 ----------
+# ---------- 讲义：函数 ----------
 def celsius_to_fahrenheit(fn):
     for c, f in [(0, 32), (100, 212), (-40, -40), (37, 98.6)]:
         ok, got = safe_call("celsius_to_fahrenheit", fn, c)
@@ -86,7 +86,7 @@ def clean_word(fn):
     return report("clean_word", True)
 
 
-# ---------- 课堂/作业：文件 ----------
+# ---------- 讲义/作业：文件 ----------
 def word_counts(fn):
     p = data.path("tinyshakespeare.txt")
     ok, got = safe_call("word_counts", fn, p)
@@ -124,7 +124,7 @@ def top_words_csv(path):
     return report("高频词 CSV", ok, "应有表头 word,count 和 50 行，按次数从大到小")
 
 
-# ---------- 课堂：NumPy ----------
+# ---------- 讲义：NumPy ----------
 def scores_array(arr):
     arr = np.asarray(arr)
     return report("成绩数组", arr.shape == (30, 3) and np.allclose(arr, _scores()),

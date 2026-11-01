@@ -188,7 +188,7 @@ def param_conversion(eps_to_data_ddpm, velocity_to_eps_fm, velocity_to_data_fm):
         if not isinstance(got, torch.Tensor) or got.shape != truth.shape:
             return report(name, False, f"{fname} 应返回形状 {tuple(truth.shape)} 的张量，实际 {getattr(got, 'shape', got)!r}")
         if not torch.allclose(toolkit, truth, atol=1e-3):   # 工具包本身的自检
-            return report(name, False, "工具包换算与真值不符——请把这条信息报告给老师")
+            return report(name, False, "工具包换算与真值不符——请把这条信息报到课程仓库的 Issues")
         err = float((got - toolkit).abs().max())
         if err > 1e-3:
             return report(name, False, f"{fname} 与工具包结果的最大差 {err:.4f}", hint)

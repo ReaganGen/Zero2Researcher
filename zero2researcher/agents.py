@@ -1,10 +1,10 @@
 """第19周 AI Agents 的工具包部分：工具、离线语料、评测集、判分，以及一个与 Claude SDK 同构的 MockLLM。
 
-课程要教的（ReAct 循环、固定步骤的 workflow、评测与失败分析）由学生自己写；
+课程要教的（ReAct 循环、固定步骤的 workflow、评测与失败分析）由学习者自己写；
 这里只放"课程不教但绕不开"的部分：
 
 - 工具：``calculator``（AST 安全求值）、``wiki_search`` / ``wiki_lookup``（离线维基摘要），
-  以及 ``live_wiki_summary``（联网版，必须带 User-Agent；只在学生自己选择时使用，CI 不调用）。
+  以及 ``live_wiki_summary``（联网版，必须带 User-Agent；只在学习者自己选择时使用，CI 不调用）。
 - 工具定义：``CALCULATOR_TOOL`` 等 JSON 常量（``input_schema`` + ``additionalProperties: False``）。
 - 评测：``load_eval()``（20 道题）、``normalize_answer`` / ``is_correct`` / ``grade``（答案规范化后判分）。
 - 后端：``MockLLM``（确定性的脚本化"模型"，CI 与无密钥时使用）与 ``make_backend()``。
@@ -279,7 +279,7 @@ def live_wiki_summary(title: str, user_agent: str = DEFAULT_USER_AGENT, timeout:
 
     一次只发一个请求、不要并发：本函数让连续请求之间至少间隔 1 秒；遇到 HTTP 429（请求太多）时，
     按响应的 Retry-After 等待后重试，最多 max_retries 次，仍失败就把 HTTPError 抛出来。
-    课程 CI 从不调用这个函数；课堂默认用离线的 wiki_search / wiki_lookup。
+    课程 CI 从不调用这个函数；默认用离线的 wiki_search / wiki_lookup。
     """
     if not isinstance(user_agent, str) or not user_agent.strip():
         raise ValueError("pass a descriptive user_agent (Wikipedia rejects requests without one, HTTP 403)")
@@ -712,7 +712,7 @@ DEMO_FAULTS = {
               "f01": "hallucination", "a05": "format_mismatch"},
     "workflow": {"f06": "wrong_tool", "a06": "bad_args", "f03": "format_mismatch"},
 }
-"""make_backend() 在没有密钥时默认使用的"会犯错的模拟模型"（课堂演示用）：按真实模型常见的失败方式预先
+"""make_backend() 在没有密钥时默认使用的"会犯错的模拟模型"（讲义演示用）：按真实模型常见的失败方式预先
 注入的 8 处故障。作业用另一份故障分布（make_backend(mock_faults="homework")），课件里不展示。"""
 
 _HOMEWORK_FAULTS = {
@@ -721,7 +721,7 @@ _HOMEWORK_FAULTS = {
     "workflow": {"f05": "wrong_tool", "a10": "bad_args", "f08": "hallucination",
                  "f02": "format_mismatch", "a07": "refusal"},
 }
-# 作业 D 的失败分析用这一份（与课堂演示的 DEMO_FAULTS 不同）；标准标注只在教师版里给出。
+# 作业 D 的失败分析用这一份（与讲义演示的 DEMO_FAULTS 不同）；标准标注只在开发仓库里。
 
 _FAULT_PRESETS = {"demo": DEMO_FAULTS, "homework": _HOMEWORK_FAULTS}
 
@@ -819,7 +819,7 @@ class MockLLM:
 
     参数 faults：
       - None（默认）：每道题都按标准轨迹作答（全部正确）；
-      - "demo"：使用 DEMO_FAULTS（课堂演示用的"偶尔犯错的模型"）；
+      - "demo"：使用 DEMO_FAULTS（讲义演示用的"偶尔犯错的模型"）；
       - "homework"：作业用的另一份故障分布（课件里不展示）；
       - 一个故障名（如 "early_stop"）：所有题都注入这一种故障；
       - {qid: 故障名}：只在这些题上注入（Agent 与 workflow 两种模式都受影响）；
@@ -1301,7 +1301,7 @@ def make_backend(prefer="claude", mock_faults="demo", verbose=True):
     - prefer="claude"、环境变量（或 Colab Secrets）里有 ANTHROPIC_API_KEY、且装了 anthropic →
       返回真实的 ``anthropic.Anthropic().messages``（每次调用都会计费）；
     - 否则（或 prefer="mock"、或环境变量 Z2R_LLM_BACKEND=mock）→ 返回 ``MockLLM(faults=mock_faults)``，
-      默认 "demo"：一个按剧本作答、在 8 处预先注入了典型错误的模拟模型（课堂演示用）；
+      默认 "demo"：一个按剧本作答、在 8 处预先注入了典型错误的模拟模型（讲义演示用）；
       作业用 ``mock_faults="homework"``（另一份故障分布）。CI 永远走这一支。
 
     密钥只从环境变量 / Colab Secrets 读取，本函数从不打印或返回它。
@@ -1316,8 +1316,8 @@ def make_backend(prefer="claude", mock_faults="demo", verbose=True):
             return anthropic.Anthropic().messages
     if verbose:
         why = "已指定使用 mock" if force_mock else "未检测到 ANTHROPIC_API_KEY"
-        extra = {"demo": "，模拟一个偶尔犯错的模型（课堂演示用的 agents.DEMO_FAULTS）",
-                 "homework": "，模拟一个偶尔犯错的模型（作业用的故障分布，与课上演示不同）"}
+        extra = {"demo": "，模拟一个偶尔犯错的模型（讲义演示用的 agents.DEMO_FAULTS）",
+                 "homework": "，模拟一个偶尔犯错的模型（作业用的故障分布，与讲义演示不同）"}
         extra = extra.get(mock_faults, "") if isinstance(mock_faults, str) else ""
         print(f"后端：MockLLM（{why}{extra}；它的准确率是剧本写的，不代表真实模型）")
     return MockLLM(faults=mock_faults)

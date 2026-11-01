@@ -10,9 +10,9 @@ import numpy as np
 from . import report, close, safe_call
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 def _synthetic_data():
-    """与课上/作业完全相同的合成数据：y = 3x + 2 + 噪声，种子 42。"""
+    """与讲义/作业完全相同的合成数据：y = 3x + 2 + 噪声，种子 42。"""
     rng = np.random.default_rng(42)
     X = rng.uniform(-2, 2, size=(200, 1))
     y = 3 * X[:, 0] + 2 + rng.normal(0, 1, size=200)
@@ -75,7 +75,7 @@ def numerical_derivative(fn):
 
 
 def shape_Xw(shape):
-    """课堂练习 1.1：(6, 3) 的 X 乘 (3,) 的 w，结果的 shape。"""
+    """练习 1.1：(6, 3) 的 X 乘 (3,) 的 w，结果的 shape。"""
     name = "shape 侦探"
     rng = np.random.default_rng(0)
     exp = (rng.normal(size=(6, 3)) @ rng.normal(size=3)).shape
@@ -128,7 +128,7 @@ def gd_step(fn):
 
 
 def one_gd_step(grad, w1):
-    """课堂练习 S2：x = [1, 2, 3]、y = [2, 4, 6]、y_hat = w * x，从 w = 0、lr = 0.1 走一步。"""
+    """练习 S2：x = [1, 2, 3]、y = [2, 4, 6]、y_hat = w * x，从 w = 0、lr = 0.1 走一步。"""
     name = "一步梯度下降"
     x, y, w0, lr = np.array([1.0, 2.0, 3.0]), np.array([2.0, 4.0, 6.0]), 0.0, 0.1
     exp_grad = float(np.mean(2 * (w0 * x - y) * x))
@@ -157,7 +157,7 @@ def fitted_params(w, b):
     ok = abs(w_val - exp_w) < 1e-3 and abs(b_val - exp_b) < 1e-3
     return report(name, ok, f"与 sklearn 的解（w≈{exp_w:.4f}, b≈{exp_b:.4f}）相差超过 1e-3，"
                   f"实际 w={w_val:.4f}, b={b_val:.4f}",
-                  "用课上的合成数据（种子 42）从 w=0, b=0 出发，lr=0.1 训练 200 步；"
+                  "用讲义的合成数据（种子 42）从 w=0, b=0 出发，lr=0.1 训练 200 步；"
                   "迭代步数不够（还没收敛）也会不通过")
 
 

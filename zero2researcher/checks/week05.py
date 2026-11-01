@@ -11,7 +11,7 @@ from . import report, close, safe_call
 from .. import data
 
 
-# ---------- 参考实现（教师实现） ----------
+# ---------- 参考实现 ----------
 _Y_TRUE = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
 _Y_PRED = [1, 1, 0, 1, 0, 0, 1, 0, 0, 0]
 
@@ -141,9 +141,9 @@ def _in_range(name, value, lo, hi, hint=None):
                   f"期望落在 [{lo}, {hi}]，实际 {v:.4f}", hint)
 
 
-# ---------- 课堂 ----------
+# ---------- 讲义 ----------
 def imbalanced_majority_acc(acc):
-    # 课上要求"先想一想再算"，所以失败时只给方法、不打印期望值
+    # 讲义要求"先想一想再算"，所以失败时只给方法、不打印期望值
     return report("多数类基线准确率", close(acc, _majority_acc(), tol=5e-3),
                   f"实际 {acc}，与参考答案不符",
                   "什么都不学、全部预测多数类时，准确率就是多数类样本占全部样本的比例")
