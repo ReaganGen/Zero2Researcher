@@ -3,7 +3,9 @@
 函数类练习把函数本身传进来（不加括号），例如 ck.numerical_gradient(numerical_gradient)；
 其余检查直接传入你算出的数值。涉及随机性的结果按合理区间检查。
 名字里标着"只核对数值"的检查分辨不出方法错误（例如向量化器在 train + test 上 fit，基线阶梯的分数几乎不变），
-划分与拟合是否正确，请对照讲义自查。埋雷练习的 ck.leak_fixed 例外：它逐项检查三处修复，而不只看准确率。
+划分与拟合是否正确，请对照讲义自查。埋雷练习的 ck.leak_fixed 例外：它逐项检查三处修复，而不只看准确率；
+作业 B 的 ck.nb_lr_curve 也例外：它重算两格，专抓"词表固定在全部训练集上"。
+ck.pca_from_scratch 只比主成分的方向（|点积|），不比符号：符号随线性代数库而变，两种都对。
 """
 import functools
 import math
@@ -90,6 +92,48 @@ def _leak_reference_acc():
     return float(clf.score(vec.transform(clean["text"]), clean["label"]))
 
 
+def _pca_ref(X, k):
+    """参考答案：中心化 → 协方差（除以 n−1）→ eigh → 降序取前 k 个。components 每行一个主成分。"""
+    mean = X.mean(axis=0)
+    Xc = X - mean
+    eigvals, eigvecs = np.linalg.eigh(Xc.T @ Xc / (len(X) - 1))
+    order = np.argsort(eigvals)[::-1][:k]
+    return mean, eigvecs[:, order].T, eigvals[order]
+
+
+def _sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def _logistic_grad_ref(X, y, w, b):
+    err = _sigmoid(X @ w + b) - y
+    return X.T @ err / len(y), float(np.mean(err))
+
+
+NB_LR_SIZES = (50, 100, 200, 500, 1000, 2000, 4000)
+NB_LR_SEEDS = 10
+
+
+def _nb_lr_cell(n, seed, refit=True):
+    """作业 B 的一格：第 seed 个大小为 n 的训练子集上 (NB 准确率, LR 准确率)。
+    refit=False 是典型错误：词表固定在全部 5000 条训练影评上，只对子集 transform。"""
+    from sklearn.feature_extraction.text import CountVectorizer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.naive_bayes import MultinomialNB
+    train, test = data.load_imdb("train"), data.load_imdb("test")
+    idx = np.random.default_rng(seed).choice(len(train), size=n, replace=False)
+    sub = train.iloc[idx]
+    if refit:
+        vec = CountVectorizer(min_df=2)
+        X_sub = vec.fit_transform(sub["text"])
+    else:
+        vec = CountVectorizer(min_df=2).fit(train["text"])
+        X_sub = vec.transform(sub["text"])
+    X_te = vec.transform(test["text"])
+    return (float(MultinomialNB().fit(X_sub, sub["label"]).score(X_te, test["label"])),
+            float(LogisticRegression(max_iter=1000).fit(X_sub, sub["label"]).score(X_te, test["label"])))
+
+
 def _in_range(name, value, lo, hi, hint=None):
     try:
         v = float(value)
@@ -109,6 +153,110 @@ def pca_evr(evr2):
     return report("前两个主成分解释方差比", np.allclose(evr2, exp, atol=5e-3),
                   f"期望约 {np.round(exp, 3)}，实际 {np.round(evr2, 3)}",
                   "对 digits 的 64 维原始像素（不要标准化）做 PCA().fit(X)")
+
+
+def pca_from_scratch(fn):
+    """讲义 S1：pca_from_scratch(X, k) -> (mean, components (k, d)，每行一个主成分, explained_variance (k,))。
+
+    主成分的符号不唯一（乘 −1 仍是特征向量，eigh 给出哪个符号还取决于线性代数库），所以只比 |点积|，不比符号。
+    """
+    from sklearn.decomposition import PCA
+    name = "pca_from_scratch"
+    rng = np.random.default_rng(5)
+    X_rand = rng.normal(size=(60, 5)) @ rng.normal(size=(5, 5)) + 3.0     # 各列相关、均值不为 0
+    X_digits, _ = _digits()
+    for X, k in [(X_rand, 3), (X_digits, 10)]:
+        ok, got = safe_call(name, fn, X.copy(), k)
+        if not ok:
+            return False
+        try:
+            mean, comps, ev = (np.asarray(g, dtype=float) for g in got)
+        except (TypeError, ValueError):
+            return report(name, False, "应返回 (mean, components, explained_variance) 三个数组")
+        d = X.shape[1]
+        sk = PCA(n_components=k).fit(X)
+        if comps.shape == (d, k):
+            return report(name, False, f"components 的 shape 应为 ({k}, {d})：每一行是一个主成分",
+                          "eigh 返回的特征向量是'列'，取出前 k 个以后转置一下")
+        if comps.shape != (k, d) or ev.shape != (k,) or mean.shape != (d,):
+            return report(name, False, f"shape 不对：mean 应为 ({d},)，components 应为 ({k}, {d})，"
+                          f"explained_variance 应为 ({k},)")
+        if not np.allclose(mean, sk.mean_, atol=1e-10):
+            return report(name, False, "mean 不对", "mean = X.mean(axis=0)，再用它中心化：Xc = X - mean")
+        if np.any(np.diff(ev) > 1e-12 * max(1.0, abs(ev).max())):
+            return report(name, False, "explained_variance 没有按从大到小排列",
+                          "np.linalg.eigh 按特征值从小到大返回；用 np.argsort(eigvals)[::-1] 重排，"
+                          "特征值和特征向量要按同一个顺序取")
+        if np.allclose(ev, sk.explained_variance_ * (len(X) - 1) / len(X), rtol=1e-8):
+            return report(name, False, "方差差了一个因子 (n−1)/n",
+                          "协方差除以 n − 1（与 sklearn 一致）：Xc.T @ Xc / (len(X) - 1)")
+        if not np.allclose(ev, sk.explained_variance_, rtol=1e-8, atol=1e-10):
+            return report(name, False, "explained_variance 与 sklearn 不一致（相对容差 1e-8）",
+                          "中心化 → 协方差 Xc.T @ Xc / (n - 1) → np.linalg.eigh → 降序取前 k 个")
+        dots = np.abs(np.sum(comps * sk.components_, axis=1))
+        if not np.all(dots > 1 - 1e-8):
+            return report(name, False, "主成分的方向与 sklearn 不一致（符号可以相反，方向必须相同）",
+                          "主成分是协方差矩阵的单位特征向量；特征向量要和排好序的特征值一一对应")
+    return report(name, True)
+
+
+def reconstruction_errors(ks, errs):
+    """讲义 S1：digits 上保留前 k 个主成分时的重建误差（每像素 MSE，像素 0–16）。与 sklearn inverse_transform 比。"""
+    from sklearn.decomposition import PCA
+    name = "PCA 重建误差"
+    try:
+        ks = [int(k) for k in ks]
+        errs = np.ravel(np.asarray(errs, dtype=float))
+    except (TypeError, ValueError):
+        return report(name, False, "应传入 ks 和对应的重建误差：ck.reconstruction_errors(ks, errs)")
+    if len(ks) != errs.size or not ks:
+        return report(name, False, f"ks 与 errs 应一样长，实际 {len(ks)} 与 {errs.size}")
+    if any(k < 1 or k > 64 for k in ks):
+        return report(name, False, "k 应在 1 到 64 之间")
+    X, _ = _digits()
+    for k, e in zip(ks, errs):
+        sk = PCA(n_components=k).fit(X)
+        Xhat = sk.inverse_transform(sk.transform(X))
+        ref = float(np.mean((X - Xhat) ** 2))
+        if not math.isclose(e, ref, rel_tol=1e-6, abs_tol=1e-9):
+            hint = "Xhat = (Xc @ V.T) @ V + mean：先投影到前 k 个主成分，再映射回 64 维、把均值加回去"
+            if math.isclose(e, float(np.mean((X - (Xhat - sk.mean_)) ** 2)), rel_tol=1e-6):
+                hint = "解压以后要把均值加回去：Xhat = (Xc @ V.T) @ V + mean"
+            return report(name, False, f"k = {k} 时重建误差应约为 {ref:.4f}，实际 {e:.4f}", hint)
+    return report(name, True)
+
+
+def logistic_grad(fn):
+    """讲义 S2：logistic_grad(X, y, w, b) -> (grad_w, grad_b)，平均交叉熵的梯度。失败时只给方法，不打印期望值。"""
+    name = "逻辑回归梯度"
+    rng = np.random.default_rng(7)
+    X = rng.normal(size=(30, 3))
+    y = rng.integers(0, 2, 30).astype(float)
+    w, b = rng.normal(size=3), 0.4
+    ok, got = safe_call(name, fn, X.copy(), y.copy(), w.copy(), b)
+    if not ok:
+        return False
+    try:
+        gw, gb = got
+        gw = np.ravel(np.asarray(gw, dtype=float))
+        gb = float(np.ravel(np.asarray(gb, dtype=float))[0])
+    except (TypeError, ValueError, IndexError):
+        return report(name, False, "应返回 (grad_w, grad_b) 两个值")
+    exp_w, exp_b = _logistic_grad_ref(X, y, w, b)
+    if gw.shape == exp_w.shape and np.allclose(gw, exp_w, atol=1e-8) and abs(gb - exp_b) < 1e-8:
+        return report(name, True)
+    if gw.shape != exp_w.shape:
+        return report(name, False, f"grad_w 的长度应等于特征数 {exp_w.shape[0]}，实际 {gw.shape[0]}",
+                      "grad_w = X.T @ (误差) / n：(d, n) @ (n,) → (d,)")
+    p = _sigmoid(X @ w + b)
+    hint = "按计算图从输出往回乘：dL/dz = σ(z) − y，dz/dw = x；再对 n 个样本取平均"
+    if np.allclose(gw, -exp_w, atol=1e-8):
+        hint = "符号反了：误差项是（预测概率 − 标签），即 σ(z) − y"
+    elif np.allclose(gw, exp_w * len(y), atol=1e-6):
+        hint = "少了 1/n：损失是平均交叉熵，梯度也要对样本取平均"
+    elif np.allclose(gw, X.T @ ((p - y) * p * (1 - p)) / len(y), atol=1e-8):
+        hint = "多乘了 σ'(z) = σ(1 − σ)：交叉熵对 p 求导得到的分母 p(1 − p) 正好把它约掉，最后只剩 σ − y"
+    return report(name, False, "与解析梯度不一致（容差 1e-8）", hint)
 
 
 def kmeans_ari(ari):
@@ -163,6 +311,13 @@ def baseline_ladder(majority, bow, tfidf):
     return report("基线阶梯（只核对数值）", float(tfidf) >= float(bow) - 0.005,
                   f"TF-IDF（{float(tfidf):.4f}）不应明显低于词袋（{float(bow):.4f}）",
                   "检查两级是否用了同一份训练/测试划分与同一个分类器")
+
+
+def nb_baseline(acc):
+    # 本机 sklearn 1.9.1：词袋（min_df=2）+ MultinomialNB(alpha=1) 0.819；alpha=0.1/0.5/2 为 0.8065/0.814/0.825，
+    # TF-IDF 特征 0.8245，二值词袋 0.826——都在区间内；词袋 + 逻辑回归（0.855）不在。
+    return _in_range("词袋 + 朴素贝叶斯（只核对数值）", acc, 0.80, 0.84,
+                     "CountVectorizer(min_df=2) 只在训练集上 fit；MultinomialNB() 用默认的 alpha=1")
 
 
 def leak_inflated_accuracy(acc):
@@ -278,6 +433,45 @@ def leak_fixed(test_ok, vec_ok, clf_ok, fixed_acc):
 
 
 # ---------- 作业 ----------
+def nb_lr_curve(results, sizes=NB_LR_SIZES, n_seeds=NB_LR_SEEDS):
+    """作业 B：results[n] 是形状 (10, 2) 的数组，第 s 行是种子 s 的 (NB 准确率, LR 准确率)。
+
+    在检查函数里重算两格（n=50 种子 0；n=2000 种子 1，约 0.5 秒），专抓"词表固定在全部 5000 条训练影评上"：
+    那样做时 n=50、种子 0 的 NB 准确率比正确做法低 0.16（n=100、种子 0 只低 0.004，所以不选那一格）。
+    再检查趋势：n ≤ 200 时 NB 平均领先 > 2 个百分点，
+    n = 4000 时落后 > 2 个百分点（本机 +0.066 与 −0.035）。逻辑回归跨平台可能差一两条测试样本，容差 0.0025。
+    """
+    name = "NB vs LR 学习曲线"
+    try:
+        R = {int(n): np.asarray(results[n], dtype=float) for n in sizes}
+    except (KeyError, IndexError, TypeError, ValueError):
+        return report(name, False, f"应传入字典：键为 {list(sizes)}，值为 ({n_seeds}, 2) 的数组（NB、LR 的测试准确率）")
+    if any(r.shape != (n_seeds, 2) for r in R.values()):
+        bad = [n for n, r in R.items() if r.shape != (n_seeds, 2)]
+        return report(name, False, f"每个 n 应有 {n_seeds} 个种子 × 2 个模型，n = {bad[0]} 的 shape 是 {R[bad[0]].shape}",
+                      "results[n] = np.array(rows)，rows 是 10 个 (nb_acc, lr_acc)")
+    for n, seed in ((50, 0), (2000, 1)):
+        if n not in R:
+            continue
+        ref = _nb_lr_cell(n, seed)
+        got = R[n][seed]
+        if np.allclose(got, ref, atol=0.0025):
+            continue
+        hint = ("每个子集都要重新 fit 词表：vec = CountVectorizer(min_df=2)；X_sub = vec.fit_transform(子集文本)；"
+                "子集用 np.random.default_rng(seed).choice(len(train), size=n, replace=False)")
+        if np.allclose(got[::-1], ref, atol=0.0025):
+            hint = "两列的顺序反了：每一行应是 (NB 准确率, LR 准确率)"
+        elif np.allclose(got, _nb_lr_cell(n, seed, refit=False), atol=0.0025):
+            hint = ("词表是在全部 5000 条训练影评上 fit 的，只对子集做了 transform。部署时你只有这 n 条训练影评，"
+                    "词表也只能从它们来：在每个子集上重新 fit CountVectorizer(min_df=2)")
+        return report(name, False, f"n = {n}、种子 {seed} 的结果与参考实现不一致（容差 0.0025）", hint)
+    small = np.mean([R[n][:, 0].mean() - R[n][:, 1].mean() for n in sizes if n <= 200])
+    large = R[max(sizes)][:, 0].mean() - R[max(sizes)][:, 1].mean()
+    return report(name, small > 0.02 and large < -0.02,
+                  f"趋势不对：n ≤ 200 时 NB − LR 平均 {small:+.3f}，n = {max(sizes)} 时 {large:+.3f}",
+                  "检查每一行的顺序是否为 (NB, LR)，以及每个 n 是否都用了 10 个种子")
+
+
 def pca_dims_accuracy(accs):
     accs = np.asarray(accs, dtype=float).ravel()
     if accs.shape != (4,):

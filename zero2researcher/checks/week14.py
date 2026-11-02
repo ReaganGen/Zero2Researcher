@@ -6,8 +6,12 @@
 LoRA 的约定照 Hu et al. 2021（arXiv:2106.09685）式 (3) h = W₀x + BAx 及其下文 §4.1 的缩放：
 ΔWx 乘以 α/r（α 是与 r 无关的常数），即 h = W₀x + (α/r)·BAx；A ∈ R^{r×d_in} 高斯初始化、B ∈ R^{d_out×r} 零初始化；LoRA 层的构造写法为 LoRALinear(base, r, alpha)，
 其中 base 是要包住的（冻结的）nn.Linear，两个低秩矩阵存为 self.A 与 self.B。
+数学工作坊 3b/3c 用第 4 周的 California Housing（同一 75/25 划分、random_state=42、按训练集标准化）：
+高斯噪声下的最大似然 = 最小二乘（σ² 的最大似然估计 = 训练 MSE）；高斯先验 w ~ N(0, τ²I)、截距不加先验的
+MAP = Ridge(alpha=σ²/τ²)。检查函数在内部重算参考解。
 torch 只在函数内部 import，保证不装 torch 也能 import 本模块。
 """
+import functools
 import math
 
 import numpy as np
@@ -235,6 +239,158 @@ def mc_kl(estimate, exact):
             "若估计值是负数或偏差很大，检查是不是从 q 采样了，或者把 log 密度的 −log σ 项漏了")
     return report(name, abs(est - ex) <= tol,
                   f"估计 {est:.4f} 与解析值 {ex:.4f} 相差 {abs(est - ex):.4f}，超过容差 {tol:.4f}", hint)
+
+
+# ---------- 数学工作坊 3b/3c：MSE = 高斯负对数似然；Ridge = 高斯先验的 MAP ----------
+@functools.lru_cache(maxsize=1)
+def _calhousing_std():
+    """与讲义 3b 相同（也与第 4 周 S4 相同）：75/25 划分（random_state=42），按训练集的均值与标准差（ddof=0）标准化。
+    返回 (X_train_std, y_train)，两个数组只读。"""
+    from sklearn.datasets import fetch_california_housing
+    from sklearn.model_selection import train_test_split
+    housing = fetch_california_housing(as_frame=True)
+    X_train, _, y_train, _ = train_test_split(housing.data, housing.target, test_size=0.25, random_state=42)
+    X_raw, y = X_train.to_numpy(), y_train.to_numpy()
+    X = (X_raw - X_raw.mean(axis=0)) / X_raw.std(axis=0)
+    X.flags.writeable = False
+    y.flags.writeable = False
+    return X, y
+
+
+def _as_wb_array(w, b, name, d=8):
+    """把 (w, b) 转成 (形状 (d,) 的数组, 浮点数)；失败时打印提示并返回 None。"""
+    try:
+        w = np.ravel(np.asarray(w, dtype=float))
+        b = float(np.ravel(np.asarray(b, dtype=float))[0])
+    except (TypeError, ValueError, IndexError):
+        report(name, False, "w 应是 8 个系数组成的数组，b 应是一个数")
+        return None
+    if w.shape != (d,):
+        report(name, False, f"w 应有 {d} 个系数（每个特征一个），实际 {w.size} 个",
+               "theta 的前 8 个是 w、最后一个是 b（3b 里 theta 还多一个 log σ）")
+        return None
+    if not (np.all(np.isfinite(w)) and np.isfinite(b)):
+        report(name, False, "w 或 b 里有 NaN / inf", "检查 minimize 有没有收敛（打印 res.success 与 res.message）")
+        return None
+    return w, b
+
+
+def gaussian_nll(fn):
+    """fn(y, y_hat, sigma) -> y_i ~ N(y_hat_i, σ²) 时每个样本的负对数似然，**对样本取平均**。
+
+    与 −scipy.stats.norm.logpdf(y, y_hat, σ).mean() 比较（σ ∈ {1, 0.5, 2}，相对误差 1e-9）。
+    讲义 3b 已经写出推导和公式，这是照公式写代码的引导式练习（仿射关系的验证在答案块之后的下一格）；
+    失败时只给方向，不打印期望值。识别：求和而不是平均、漏了 ½·log(2πσ²)、把 σ 当成方差、符号反了。"""
+    from scipy.stats import norm
+
+    name = "gaussian_nll：高斯负对数似然"
+    rng = np.random.default_rng(9)
+    y, y_hat = rng.normal(size=50), rng.normal(size=50)
+    for s in (1.0, 0.5, 2.0):
+        ok, got = safe_call(name, fn, y.copy(), y_hat.copy(), s)
+        if not ok:
+            return False
+        try:
+            g = float(got)
+        except (TypeError, ValueError):
+            return report(name, False, f"应返回一个数（对样本取平均），实际 {type(got).__name__}，形状 {np.shape(got)}",
+                          "最后对所有样本取 np.mean")
+        want = -norm.logpdf(y, loc=y_hat, scale=s).mean()
+        if math.isclose(g, want, rel_tol=1e-9, abs_tol=1e-12):
+            continue
+        sq = np.mean((y - y_hat) ** 2)
+        hint = "每个样本：½·log(2πσ²) + (y − ŷ)²/(2σ²)，再对样本取平均"
+        if math.isclose(g, want * len(y), rel_tol=1e-9):
+            hint = "你返回的是求和；本节约定对样本取平均（与 MSE 的口径一致）"
+        elif math.isclose(g, sq / (2 * s ** 2), rel_tol=1e-9):
+            hint = "漏了 ½·log(2πσ²) 这一项：σ 固定时它是常数，不影响 w、b 的最优解，但要一起估计 σ 时少不了它"
+        elif math.isclose(g, 0.5 * math.log(2 * math.pi * s) + sq / (2 * s), rel_tol=1e-9):
+            hint = "传入的 sigma 是标准差，不是方差：公式里要用 sigma**2"
+        elif math.isclose(g, -want, rel_tol=1e-9):
+            hint = "符号反了：这是负对数似然，−log p，数值越小越好"
+        return report(name, False, f"σ = {s} 时与 −log N(y; ŷ, σ²) 的样本平均不一致", hint)
+    return report(name, True)
+
+
+def mle_matches_ols(w, b, sigma2):
+    """讲义 3b：数值最大化高斯似然得到的 (w, b, σ²)，应与标准化训练集上的 LinearRegression 一致
+    （w、b 的 atol 1e-5；本机差 1e-7），σ² 应等于训练集 MSE（相对误差 1e-5；本机 0.520552 vs 0.520552）。"""
+    from sklearn.linear_model import LinearRegression
+    name = "最大似然 = 最小二乘（CalHousing）"
+    wb = _as_wb_array(w, b, name)
+    if wb is None:
+        return False
+    w, b = wb
+    try:
+        s2 = float(sigma2)
+    except (TypeError, ValueError):
+        return report(name, False, "sigma2 应是一个数（σ² 的最大似然估计）")
+    X, y = _calhousing_std()
+    ols = LinearRegression().fit(X, y)
+    gap = max(np.abs(w - ols.coef_).max(), abs(b - ols.intercept_))
+    if gap > 1e-5:
+        hint = ("在标准化后的训练集 X_h、y_h 上最小化 gaussian_nll（参数是 w、b、log σ）；"
+                "若 minimize 提前停了，把 gtol 调小、maxiter 调大")
+        from sklearn.datasets import fetch_california_housing
+        from sklearn.model_selection import train_test_split
+        housing = fetch_california_housing(as_frame=True)
+        X_train, _, y_train, _ = train_test_split(housing.data, housing.target, test_size=0.25, random_state=42)
+        if np.allclose(w, LinearRegression().fit(X_train, y_train).coef_, atol=1e-4):
+            hint = "这是在原始（未标准化）特征上的系数；本节用按训练集均值与标准差标准化后的 X_h"
+        return report(name, False, f"与 LinearRegression 的系数（含截距）最大差 {gap:.1e}，应 < 1e-5", hint)
+    mse = float(np.mean((y - ols.predict(X)) ** 2))
+    if not math.isclose(s2, mse, rel_tol=1e-5):
+        hint = "σ² 的最大似然估计就是训练集上的 MSE：对 σ² 求导令其为 0 即得"
+        if math.isclose(s2, math.sqrt(mse), rel_tol=1e-4):
+            hint = "你传入的是 σ（标准差）；这里要 σ² = exp(2·log σ)"
+        elif math.isclose(s2, math.log(math.sqrt(mse)), rel_tol=1e-4) or math.isclose(s2, math.log(mse), rel_tol=1e-4):
+            hint = "你传入的是 log σ（优化用的参数）；要换回 σ² = exp(2·log σ)"
+        return report(name, False, f"σ² = {s2:.6f}，与训练集 MSE 不一致（相对误差 {abs(s2 / mse - 1):.1e}）", hint)
+    return report(name, True)
+
+
+def map_equals_ridge(w, b, alpha):
+    """讲义 3c：高斯先验 w ~ N(0, τ²I)（截距不加先验）、噪声方差 σ² 下的 MAP (w, b)，应与 sklearn
+    Ridge(alpha=σ²/τ²) 在标准化训练集上的解一致（atol 1e-5；本机差 ≤ 2e-7）。alpha 是你算出的 σ²/τ²。"""
+    from sklearn.linear_model import LinearRegression, Ridge
+    name = "MAP（高斯先验）= Ridge"
+    wb = _as_wb_array(w, b, name)
+    if wb is None:
+        return False
+    w, b = wb
+    try:
+        a = float(alpha)
+    except (TypeError, ValueError):
+        return report(name, False, "alpha 应是一个数：σ² / τ²")
+    if not (np.isfinite(a) and a > 0):
+        return report(name, False, f"alpha 应是正数，实际 {a}")
+    X, y = _calhousing_std()
+    n = len(y)
+
+    def gap_to(alpha_):
+        ref = Ridge(alpha=alpha_).fit(X, y)
+        return max(np.abs(w - ref.coef_).max(), abs(b - ref.intercept_))
+
+    gap = gap_to(a)
+    if gap <= 1e-5:
+        return report(name, True)
+    hint = "负对数后验 = SSE/(2σ²) + ‖w‖²/(2τ²)；两边乘 2σ² 就是 Ridge，α = σ²/τ²，截距不加先验"
+    ols = LinearRegression().fit(X, y)
+    s2 = float(np.mean((y - ols.predict(X)) ** 2))       # 讲义里的 σ²（最大似然估计 = 训练 MSE）
+    if gap_to(1 / a) <= 1e-5:
+        hint = "α 写反了：α = σ²/τ²（先验越窄、惩罚越强），不是 τ²/σ²"
+    elif gap_to(a / s2) <= 1e-5:                     # 等效 α = 1/τ²：SSE/2 + ‖w‖²/(2τ²)，或 SSE/(2σ²) + ‖w‖²/(2τ²σ²)
+        hint = "似然项少除了 σ²（或先验项多除了 σ²）：负对数后验 = SSE/(2σ²) + ‖w‖²/(2τ²)"
+    elif gap_to(a / (2 * s2)) <= 1e-5:               # 等效 α = 1/(2τ²)：SSE + ‖w‖²/(2τ²)
+        hint = "似然项要除以 2σ²：负对数后验 = SSE/(2σ²) + ‖w‖²/(2τ²)"
+    elif gap_to(a * n) <= 1e-5:
+        hint = "只给似然项除了 n、先验项没除：要么都除以 n，要么都不除——最优解只取决于两项的比例"
+    else:
+        A = np.column_stack([X, np.ones(n)])
+        theta = np.linalg.solve(A.T @ A + a * np.eye(A.shape[1]), A.T @ y)
+        if max(np.abs(w - theta[:-1]).max(), abs(b - theta[-1])) <= 1e-5:
+            hint = "截距也加了先验：只有 w 有高斯先验，截距 b 不进 ‖w‖²"
+    return report(name, False, f"与 Ridge(alpha={a:.4g}) 的解（含截距）最大差 {gap:.1e}，应 ≤ 1e-5", hint)
 
 
 # ---------- 微调与 PEFT ----------

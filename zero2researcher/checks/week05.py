@@ -132,6 +132,57 @@ def _titanic_cv_scores(pipe=None, scoring="accuracy"):
                            cv=_cv(), scoring=scoring)
 
 
+# 偏差-方差分解（05_lecture S3）：设定改写自 scikit-learn 示例 plot_bias_variance.py（BSD-3-Clause）。
+# 真函数、50 份训练集 × 50 点、1000 个测试点 × 50 份噪声照搬；随机数改用 default_rng，分解写成向量化形式。
+_BV_REPEAT, _BV_TRAIN, _BV_TEST = 50, 50, 1000
+
+
+def _bv_f(x):
+    x = np.ravel(x)
+    return np.exp(-x ** 2) + 1.5 * np.exp(-(x - 2) ** 2)
+
+
+def _bv_datasets(noise=0.1, seed=0):
+    """与讲义 make_datasets 完全相同：返回 (train_sets, X_test, y_test)。"""
+    rng = np.random.default_rng(seed)
+    train_sets = []
+    for _ in range(_BV_REPEAT):
+        x = rng.uniform(-5, 5, _BV_TRAIN)
+        train_sets.append((x.reshape(-1, 1), _bv_f(x) + rng.normal(0, noise, _BV_TRAIN)))
+    x_test = np.sort(rng.uniform(-5, 5, _BV_TEST)).reshape(-1, 1)
+    y_test = _bv_f(x_test)[:, None] + rng.normal(0, noise, (_BV_TEST, _BV_REPEAT))
+    return train_sets, x_test, y_test
+
+
+def _decompose(y_predict, y_test, f_test):
+    error = np.mean((y_test[:, :, None] - y_predict[:, None, :]) ** 2)   # 每份带噪 y × 每个模型，两两配对
+    bias2 = np.mean((f_test - y_predict.mean(axis=1)) ** 2)              # 和真函数比，不是和带噪 y 比
+    var = np.mean(y_predict.var(axis=1))                                 # ddof=0，与 sklearn 示例一致
+    noise = np.mean(y_test.var(axis=1))
+    return error, bias2, var, noise
+
+
+def _bv_models():
+    from sklearn.ensemble import BaggingRegressor, RandomForestRegressor
+    from sklearn.tree import DecisionTreeRegressor
+    return {
+        "Tree": lambda i: DecisionTreeRegressor(random_state=0),
+        "Bagging(Tree)": lambda i: BaggingRegressor(DecisionTreeRegressor(), n_estimators=10, random_state=i),
+        "RandomForest": lambda i: RandomForestRegressor(n_estimators=100, random_state=i),
+    }
+
+
+def _bv_results(seed=0, noise=0.1):
+    """讲义那一格的参考结果：{"Tree": (误差, 偏差², 方差, 噪声), ...}。"""
+    train_sets, X_test, y_test = _bv_datasets(noise, seed)
+    out = {}
+    for name, make_model in _bv_models().items():
+        preds = np.column_stack([make_model(i).fit(Xt, yt).predict(X_test)
+                                 for i, (Xt, yt) in enumerate(train_sets)])
+        out[name] = _decompose(preds, y_test, _bv_f(X_test))
+    return out
+
+
 def _in_range(name, value, lo, hi, hint=None):
     try:
         v = float(value)
@@ -217,6 +268,112 @@ def titanic_cv_scores(scores, pipe=None, X=None):
                   "特征用 pclass / age / fare / sex（female=1）；模型用 LogisticRegression(max_iter=1000)")
 
 
+_BV_PAIR_HINT = ("误差要把每一份带噪声的 y 和每一个模型的预测两两配对；别假设数组的形状——"
+                 "模型个数是 y_predict.shape[1]、噪声份数是 y_test.shape[1]、测试点数是 len(f_test)，"
+                 "或者直接广播：y_test[:, :, None] - y_predict[:, None, :]")
+
+
+def bias_variance(fn):
+    """讲义 S3：decompose(y_predict, y_test, f_test) -> (误差, 偏差², 方差, 噪声)，都已对测试点取平均。
+
+    测试数据与讲义同形状：1000 个测试点 × 50 个模型、1000 × 50 份带噪声的 y（随机数组，不是讲义的数据）。
+    所以照 sklearn 示例写的双重循环，无论循环上界用讲义的全局 N_REPEAT / N_TEST 还是用数组的形状，都能通过；
+    向量化的广播写法也能通过。识别"对角配对"（第 j 个模型只和第 j 份 y 配对）、偏差拿带噪 y 比、方差 ddof=1；
+    函数抛出 IndexError / ValueError（多半是形状假设错了）时给出"两两配对、别假设形状"的提示。"""
+    import math
+    name = "偏差-方差分解"
+    rng = np.random.default_rng(3)
+    f_test = rng.normal(size=_BV_TEST)
+    y_predict = f_test[:, None] + 0.3 + rng.normal(0, 0.5, (_BV_TEST, _BV_REPEAT))   # 50 个模型，带一点系统偏差
+    y_test = f_test[:, None] + rng.normal(0, 0.2, (_BV_TEST, _BV_REPEAT))            # 每个测试点 50 份带噪声的 y
+    try:
+        got = fn(y_predict.copy(), y_test.copy(), f_test.copy())
+    except NotImplementedError:
+        return report(name, False, "函数还没有实现（仍是 NotImplementedError）")
+    except (IndexError, ValueError) as e:
+        return report(name, False, f"运行时出错 {type(e).__name__}: {e}", _BV_PAIR_HINT)
+    except Exception as e:  # noqa: BLE001
+        return report(name, False, f"运行时出错 {type(e).__name__}: {e}",
+                      "先读报错信息的最后一行，再用 print() 检查中间变量")
+    try:
+        got = np.array([float(v) for v in got])
+    except (TypeError, ValueError):
+        return report(name, False, "应返回 4 个数：(error, bias2, var, noise)")
+    if got.shape != (4,):
+        return report(name, False, f"应返回 4 个数：(error, bias2, var, noise)，实际 {got.shape[0]} 个")
+    exp = np.array(_decompose(y_predict, y_test, f_test))
+    labels = ["误差", "偏差²", "方差", "噪声"]
+    bad = [i for i in range(4) if not math.isclose(got[i], exp[i], rel_tol=1e-9, abs_tol=1e-12)]
+    if not bad:
+        return report(name, True)
+    hints = [
+        "误差：在每个测试点上，把每一份带噪声的 y 和每一个模型的预测两两配对求平方差，再全部平均"
+        "（y_test[:, :, None] - y_predict[:, None, :]）",
+        "偏差²：先在每个测试点上对所有模型的预测取平均，再和真函数 f（不是带噪声的 y）比，平方后对测试点平均",
+        "方差：每个测试点上各模型预测的方差（np.var，默认 ddof=0），再对测试点平均",
+        "噪声：每个测试点上那几份带噪声 y 的方差，再对测试点平均",
+    ]
+    hint = hints[bad[0]]
+    if bad[0] == 0 and math.isclose(got[0], np.mean((y_test - y_predict) ** 2), rel_tol=1e-9):
+        hint = ("误差用了对角配对：第 j 个模型只和第 j 份带噪声的 y 配对。要两两配对——每一份 y 和每一个模型都比一次，"
+                "共 模型数 × 噪声份数 个组合（y_test[:, :, None] - y_predict[:, None, :]，或照 sklearn 示例写两层循环）")
+    elif bad[0] == 1 and math.isclose(got[1], np.mean((y_test.mean(axis=1) - y_predict.mean(axis=1)) ** 2), rel_tol=1e-9):
+        hint = "偏差²要和真函数 f_test 比；你比的是带噪声的 y 的平均"
+    elif 2 in bad and math.isclose(got[2], np.mean(y_predict.var(axis=1, ddof=1)), rel_tol=1e-9):
+        hint = "方差用了 ddof=1；本节与 sklearn 示例一致，用 np.var 的默认值 ddof=0"
+    return report(name, False, f"{'、'.join(labels[i] for i in bad)} 与参考实现不一致", hint)
+
+
+def ensemble_bias_variance(results):
+    """讲义 S3：{"Tree": (e, b, v, n), "Bagging(Tree)": (...), "RandomForest": (...)}。阈值来自 10 个数据种子的实测。"""
+    name = "单棵树 vs Bagging vs 随机森林"
+    keys = ("Tree", "Bagging(Tree)", "RandomForest")
+    try:
+        tree, bag, rf = (np.asarray(results[k], dtype=float).ravel() for k in keys)
+    except (KeyError, TypeError, ValueError, IndexError):
+        return report(name, False, '应传入字典，键为 "Tree"、"Bagging(Tree)"、"RandomForest"，值为 decompose 返回的 4 个数')
+    if any(r.shape != (4,) for r in (tree, bag, rf)):
+        return report(name, False, "每个模型应有 4 个数：(误差, 偏差², 方差, 噪声)")
+    for k, r in zip(keys, (tree, bag, rf)):
+        if abs(r[0] - r[1:].sum()) > 1e-3:
+            return report(name, False, f"{k}：误差与 偏差²+方差+噪声 相差 {abs(r[0] - r[1:].sum()):.4f}，超过 0.001",
+                          "检查分解函数；四个量都要对测试点取平均")
+        if not 0.008 <= r[3] <= 0.012:
+            return report(name, False, f"{k} 的噪声应约为 0.01（噪声标准差 0.1 的平方），实际 {r[3]:.4f}",
+                          "用 make_datasets() 的默认设定（noise=0.1, seed=0）")
+    if not 0.010 <= tree[2] <= 0.020:
+        return report(name, False, f"单棵树的方差应在 0.010–0.020，实际 {tree[2]:.4f}",
+                      "DecisionTreeRegressor(random_state=0) 不限深度；50 份训练集各训一棵")
+    if not bag[2] <= 0.8 * tree[2]:
+        return report(name, False, f"Bagging 的方差（{bag[2]:.4f}）应明显低于单棵树（{tree[2]:.4f}）",
+                      "BaggingRegressor(DecisionTreeRegressor(), n_estimators=10, random_state=i)，"
+                      "每份训练集都要新建一个模型")
+    if not rf[2] < bag[2]:
+        return report(name, False, f"100 棵树的随机森林方差（{rf[2]:.4f}）应低于 10 棵树的 Bagging（{bag[2]:.4f}）",
+                      "RandomForestRegressor(n_estimators=100, random_state=i)")
+    return report(name, abs(bag[1] - tree[1]) < 0.002,
+                  f"Bagging 与单棵树的偏差²应几乎相同，实际相差 {abs(bag[1] - tree[1]):.4f}")
+
+
+def calhousing_models(lr_scores, rf_scores, hgbt_scores):
+    """讲义 S3：California Housing 上 LR / RF / HGBT 的 5 折 R²（同一个 KFold）。"""
+    name = "California Housing 5 折 R²（只核对数值）"
+    try:
+        lr, rf, hg = (np.ravel(np.asarray(s, dtype=float)) for s in (lr_scores, rf_scores, hgbt_scores))
+    except (TypeError, ValueError):
+        return report(name, False, "应传入三组 cross_val_score 的分数：ck.calhousing_models(lr, rf, hgbt)")
+    cv_hint = "cv = KFold(n_splits=5, shuffle=True, random_state=42)，scoring=\"r2\"，三个模型用同一个 cv"
+    if not all(s.shape == (5,) for s in (lr, rf, hg)):
+        return report(name, False, "每组应是 5 个分数", cv_hint)
+    for label, s, lo, hi in (("线性回归", lr, 0.57, 0.63), ("随机森林", rf, 0.78, 0.84),
+                             ("HistGradientBoosting", hg, 0.81, 0.87)):
+        if not lo <= s.mean() <= hi:
+            return report(name, False, f"{label}的平均 R² 应在 [{lo}, {hi}]，实际 {s.mean():.4f}", cv_hint)
+    return report(name, (hg - rf).mean() > 0.01,
+                  f"HGBT 的平均 R² 应比随机森林高 0.01 以上，实际差 {(hg - rf).mean():+.4f}",
+                  "检查三组分数的顺序：(线性回归, 随机森林, HGBT)")
+
+
 def wrong_cv_error(err):
     return _in_range("错误流程的 CV 误差", err, 0.0, 0.15,
                      "先在全部 50 个样本上选特征、再做 CV——误差应该低得离谱（这正是泄漏的味道）")
@@ -254,6 +411,13 @@ def titanic_lr_f1(mean):
 def titanic_rf_f1(mean):
     return _in_range("随机森林 macro-F1（只核对数值）", mean, 0.76, 0.88,
                      "随机森林用同一套特征与同一个 cv；n_estimators=100, random_state=42")
+
+
+def titanic_hgbt_f1(mean):
+    """作业 A2：HistGradientBoostingClassifier 的 macro-F1。是否赢随机森林由你按逐折差值判断，这里不检查。"""
+    return _in_range("梯度提升树 macro-F1（只核对数值）", mean, 0.76, 0.88,
+                     'HistGradientBoostingClassifier(random_state=42) 直接用含缺失值的 X；'
+                     '与 A 用同一个 cv，cross_validate(..., scoring="f1_macro")')
 
 
 def leak_outside_acc(acc):

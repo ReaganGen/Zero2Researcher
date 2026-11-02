@@ -5,6 +5,8 @@
 其余检查直接传入你算出的数值。涉及训练随机性的结果按合理区间检查（区间依据本机实测 ± 余量）。
 torch 只在函数内部 import，保证不装 torch 也能 import 本模块。
 """
+import math
+
 import numpy as np
 
 from . import report, safe_call
@@ -324,3 +326,235 @@ def kernel_width_results(results):
         return report(name, False, "4 种核宽的结果一模一样——核宽大概没有真正传进模型",
                       "检查构造模型时是否用了循环变量 k：SingleWidthCNN(V, k=k)")
     return report(name, True)
+
+
+# ---------- 讲义 S2 研究方法插曲：误差分析与数据错配 ----------
+# 区间依据 8a 调研实测：官方 blitz Net（50k、2 epochs、batch 4、SGD 1e-3/0.9），种子 42 / 0 / 1，CPU 2 线程；
+# MPS 训练出的 net 略有不同（种子 42 测试准确率 0.5559 vs CPU 0.5567），区间的余量足以覆盖。
+# 只有 N_TRAIN = 50000（完整配置）时才卡数值区间；N_TRAIN = 10000 的子集配置只查结构与算术。
+# 称呼（8a 审查 W10-1）：官方测试集前 5000 张 = 训练-开发集（干净、同分布，看错例用）；后 5000 张 + 对比度严重度 2
+# = 目标开发集（"B 实验室"，不看错例、不调参数，只算总误差）。参数名与字典键（y_dev、"dev" 等）沿用旧名，
+# 给学习者看的文字一律用新称呼。
+N_DEV = 5000
+HUMAN_ACCURACY = 0.9391          # Ho-Phuoc 2018（arXiv:1811.07270）：人类在 CIFAR-10 上的平均准确率
+
+
+def _subset_note(name, n_train):
+    if n_train == 50000:
+        return False
+    print(f"   （{name}：N_TRAIN = {n_train} 的子集配置下模型弱得多，只检查结构与算术，不卡数值区间）")
+    return True
+
+
+def error_sample(idx, y_dev, pred_dev, n=100):
+    """100 个训练-开发集错例的下标：互不重复、都在训练-开发集（官方测试集前 5000 张）里、而且全是预测错的。"""
+    name = "100 个训练-开发集错例"
+    try:
+        idx = np.asarray(idx)
+        yt, yp = np.asarray(y_dev), np.asarray(pred_dev)
+    except (TypeError, ValueError):
+        return report(name, False, "应传入三个数组：sample（下标）、train_dev_y、train_dev_pred")
+    if idx.shape != (n,) or not np.issubdtype(idx.dtype, np.integer):
+        return report(name, False, f"sample 应是 {n} 个整数下标，实际形状 {idx.shape}、类型 {idx.dtype}")
+    if len(set(idx.tolist())) != n:
+        return report(name, False, "下标有重复", "无放回地抽：rng.choice(wrong, size=100, replace=False)")
+    if idx.min() < 0 or idx.max() >= min(len(yt), N_DEV):
+        return report(name, False, f"下标应在 [0, {N_DEV}) 内：只从训练-开发集（官方测试集的前 5000 张）里抽",
+                      "目标开发集（后 5000 张）不看错例；如果你拿的是全部 1 万张测试图的下标，先切出前 5000 张")
+    return report(name, bool(np.all(yt[idx] != yp[idx])), "抽到的样本里混进了预测正确的图",
+                  "先找出预测错的下标 wrong = np.flatnonzero(train_dev_pred != train_dev_y)，再从 wrong 里抽 100 个")
+
+
+def _tag_lists(tags):
+    """把 tags 统一成"每张图一个标签列表"；格式不对返回 None。"""
+    if not isinstance(tags, (list, tuple)):
+        return None
+    out = []
+    for t in tags:
+        if not isinstance(t, (list, tuple, set)) or not all(isinstance(s, str) for s in t):
+            return None
+        out.append([s for s in t if s.strip()])          # 空字符串不算标签
+    return out
+
+
+def error_tags(tags, n=100):
+    """人工归类的标签：tags[k] 是第 k 张错例的标签列表（字符串，可以有多个）。
+
+    人工标签没法自动判对错，这里只查结构；某一类占了六成以上时提醒细分（Ng：'其他'类太大要拆）。"""
+    name = "错例的人工标签"
+    lists = _tag_lists(tags)
+    if lists is None:
+        return report(name, False, "tags 应是列表，每个元素是一张图的标签列表（字符串），例如 [['背景主导'], ['暗', '太小'], ...]",
+                      "单个标签也写成列表：['背景主导']")
+    if len(lists) != n:
+        return report(name, False, f"tags 应有 {n} 个元素（每张错例一个），实际 {len(lists)} 个")
+    empty = [k for k, t in enumerate(lists) if not t]
+    if empty:
+        return report(name, False, f"还有 {len(empty)} 张图没有标签（编号 {empty[:8]}{' …' if len(empty) > 8 else ''}）",
+                      "每张图至少一个标签；实在归不进任何一类，就单独记一个'其他'")
+    counts = {}
+    for t in lists:
+        for s in set(t):
+            counts[s] = counts.get(s, 0) + 1
+    if len(counts) < 3:
+        return report(name, False, f"只分出了 {len(counts)} 类——类别定义得太粗，至少分出 3 类",
+                      "常见的类别：非典型外观、太小或被截断、背景主导、太暗或对比度低、清晰典型（模型就是错了）")
+    top, c = max(counts.items(), key=lambda kv: kv[1])
+    if c > 0.6 * n:
+        print(f"   注意：『{top}』占了 {c}/{n}，考虑把它再拆细（Ng：'其他'类太大时要细分）")
+    return report(name, True)
+
+
+def _ref_ceiling(tags, error):
+    counts = {}
+    for t in tags:
+        for s in set(t):
+            counts[s] = counts.get(s, 0) + 1
+    return {s: (c, 100 * error * c / len(tags)) for s, c in counts.items()}
+
+
+def ceiling_table(fn):
+    """学习者写的 ceiling_table(tags, error)（error 是看错例那份数据——训练-开发集——的误差） -> {类别: (张数, 收益上限的百分点)}。"""
+    name = "收益上限表 ceiling_table"
+    cases = [
+        ([["dark"]] * 50 + [["small"]] * 30 + [["small", "dark"]] * 20, 0.44),    # 一张图两个标签
+        ([["a"]] * 30 + [["b"]] * 10, 0.5),                                       # 不是 100 张
+    ]
+    for tags, err in cases:
+        want = _ref_ceiling(tags, err)
+        ok, out = safe_call(name, fn, [list(t) for t in tags], err)
+        if not ok:
+            return False
+        if not isinstance(out, dict) or set(out) != set(want):
+            return report(name, False, f"应返回以类别为键的 dict，键为 {sorted(want)}，实际 {out!r}")
+        for k, (c, ceil) in want.items():
+            try:
+                gc, gceil = int(out[k][0]), float(out[k][1])
+            except (TypeError, ValueError, IndexError, KeyError):
+                return report(name, False, f"out[{k!r}] 应是 (张数, 收益上限) 两个数，实际 {out[k]!r}")
+            if gc != c:
+                return report(name, False, f"测试例里 {k!r} 应有 {c} 张，实际 {gc}",
+                              "一张图有两个标签时，两类各计一次")
+            if not math.isclose(gceil, ceil, abs_tol=0.05):
+                hint = "收益上限 = 看错例那份数据（训练-开发集）的误差 × 该类张数 / 错例张数 × 100（以百分点表示）"
+                if math.isclose(gceil, ceil / 100, abs_tol=5e-4):
+                    hint = "以百分点表示：再乘 100（0.308 → 30.8 个百分点）"
+                elif math.isclose(gceil, 100 * err * c / 100, abs_tol=0.05):
+                    hint = "分母是错例的张数 len(tags)，不要写死成 100"
+                elif math.isclose(gceil, 100 * err * c / sum(len(t) for t in tags), abs_tol=0.05):
+                    hint = "分母是错例的张数 len(tags)，不是标签的总个数——一张图两个标签时两类各计一次，比例加起来可以超过 1"
+                return report(name, False, f"测试例（误差 {err}）里 {k!r} 的收益上限应为 {ceil:.1f}，实际 {gceil:.3g}", hint)
+    return report(name, True)
+
+
+def mismatch_table(t, n_train=50000):
+    """t = {"human", "train", "train_dev", "dev"}（误差，0–1 的小数）与 {"avoidable_bias", "variance", "mismatch"}。
+    "dev" 是目标开发集（B 实验室）的误差，键名沿用旧名。
+
+    本机实测（3 个种子，CPU）：训练（train[:10000]，eval 模式）0.421–0.435；训练-开发（干净的前 5000 张）
+    0.431–0.453；目标开发（后 5000 张 + 对比度严重度 2）0.606–0.657；人类 0.061（Ho-Phuoc 2018）。"""
+    name = "偏差 / 方差 / 数据错配表"
+    keys = ("human", "train", "train_dev", "dev", "avoidable_bias", "variance", "mismatch")
+    if not isinstance(t, dict) or not all(k in t for k in keys):
+        return report(name, False, f"应是含 {list(keys)} 的 dict（误差用 0–1 的小数）")
+    try:
+        v = {k: float(t[k]) for k in keys}
+    except (TypeError, ValueError):
+        return report(name, False, "表里的每一项都应是数")
+    if any(not 0.0 <= v[k] <= 1.0 for k in keys[:4]):
+        return report(name, False, f"误差应是 0–1 的小数，实际 { {k: round(v[k], 3) for k in keys[:4]} }",
+                      "误差 = 1 − 准确率；不要写成百分数")
+    gaps = {"avoidable_bias": v["train"] - v["human"], "variance": v["train_dev"] - v["train"],
+            "mismatch": v["dev"] - v["train_dev"]}
+    bad = [k for k in gaps if not math.isclose(gaps[k], v[k], abs_tol=1e-6)]
+    if bad:
+        return report(name, False, f"{bad} 与表里的误差对不上",
+                      "可避免偏差 = 训练 − 人类；方差 = 训练-开发 − 训练；数据错配 = 目标开发 − 训练-开发")
+    if not math.isclose(v["human"], 1 - HUMAN_ACCURACY, abs_tol=0.02):
+        return report(name, False, f"人类水平误差约 6%（Ho-Phuoc 2018：人类平均准确率 93.91%），实际 {v['human']:.3f}")
+    if _subset_note(name, n_train):
+        return report(name, True)
+    for k, label, lo, hi, what in (("train", "训练", 0.33, 0.52, "训练集前 1 万张，eval 模式"),
+                                   ("train_dev", "训练-开发", 0.36, 0.54, "训练-开发集：干净的前 5000 张"),
+                                   ("dev", "目标开发", 0.50, 0.75, "目标开发集：后 5000 张加对比度严重度 2")):
+        if not lo <= v[k] <= hi:
+            return report(name, False, f"{label}误差（键 \"{k}\"）应在 [{lo}, {hi}]（{what}），实际 {v[k]:.3f}",
+                          "误差 = 1 − 准确率；predict 之前模型要切到 eval 模式（predict 里已写好）")
+    return report(name, True)
+
+
+def contrast(fn):
+    """学习者写的 contrast(u8, c)：与 zero2researcher.shift 里改编自 CIFAR-10-C 的对比度腐蚀逐像素比对（差 ≤ 1）。"""
+    from ..shift import SEVERITY, corrupt_cifar
+
+    name = "对比度腐蚀 contrast"
+    rng = np.random.default_rng(10)
+    x = rng.integers(0, 256, size=(3, 32, 32, 3)).astype(np.uint8)
+    x[1] = np.clip(x[1] // 2 + 100, 0, 255)                       # 一张偏亮、对比度本来就低的图
+    x[2, ..., 0] = 250                                            # 一张红色通道几乎饱和的图
+    for s, c in enumerate(SEVERITY["contrast"], start=1):
+        ok, got = safe_call(name, fn, x.copy(), c)
+        if not ok:
+            return False
+        want = corrupt_cifar(x, "contrast", s)
+        if not isinstance(got, np.ndarray) or got.shape != x.shape:
+            shape = got.shape if isinstance(got, np.ndarray) else type(got).__name__
+            return report(name, False, f"应返回与输入同形状 {x.shape} 的数组，实际 {shape}")
+        if got.dtype != np.uint8:
+            return report(name, False, f"应返回 uint8（0–255），实际 dtype {got.dtype}",
+                          "最后乘 255 再转回 uint8：np.uint8(...)，与上游一样直接截断")
+        diff = np.abs(got.astype(int) - want.astype(int)).max()
+        if diff > 1:
+            f = x / 255.0
+            hint = ("上游的写法：x = u8 / 255；m = 每张图、每个通道的均值（axis=(1, 2)，keepdims=True）；"
+                    "np.uint8(np.clip((x − m) × c + m, 0, 1) × 255)")
+            for axis, msg in (((0, 1, 2), "均值要按每张图分别算，不要对整批图求"),
+                              ((1, 2, 3), "均值要按每个通道分别算：axis=(1, 2)，不要把 3 个通道混在一起"),
+                              (None, "均值要按每张图、每个通道分别算：axis=(1, 2)")):
+                m = f.mean(axis=axis, keepdims=True)
+                if np.abs((np.clip((f - m) * c + m, 0, 1) * 255).astype(np.uint8).astype(int) - got.astype(int)).max() <= 1:
+                    hint = msg
+                    break
+            return report(name, False, f"c = {c} 时与参考结果最多差 {diff}（允许 ≤ 1）", hint)
+    return report(name, True)
+
+
+def corruption_sweep(results, clean_acc, n_train=50000):
+    """results[腐蚀名] = [严重度 1–5 的准确率]，至少含 "contrast"；clean_acc 是训练-开发集（干净）的准确率。
+
+    本机实测（干净 0.547–0.569）：对比度严重度 3 比干净低 24–28 个百分点，严重度 5 比严重度 1 低 33–39 个百分点。"""
+    name = "腐蚀扫描"
+    if not isinstance(results, dict) or "contrast" not in results:
+        return report(name, False, "results 应是 {腐蚀名: [严重度 1–5 的准确率]}，至少包含 'contrast'")
+    try:
+        rows = {k: np.asarray(v, dtype=float) for k, v in results.items()}
+        clean = float(clean_acc)
+    except (TypeError, ValueError):
+        return report(name, False, "准确率应是数")
+    if any(r.shape != (5,) for r in rows.values()):
+        return report(name, False, "每种腐蚀都要有 5 个严重度的准确率")
+    if any(np.any((r < 0) | (r > 1)) for r in rows.values()) or not 0 <= clean <= 1:
+        return report(name, False, "准确率应在 0–1 之间")
+    if _subset_note(name, n_train):
+        return report(name, True)
+    c = rows["contrast"]
+    return report(name, c[2] < clean - 0.15 and c[4] < c[0] - 0.2,
+                  f"对比度扰动应让准确率明显下降（本机严重度 3 掉约 25 个百分点），实际 {np.round(c, 3).tolist()}，干净 {clean:.3f}",
+                  "腐蚀要加在 uint8 原图（0–255）上，再做与训练时相同的 ToTensor + Normalize（predict 里已写好）")
+
+
+def batch_correction(before, after, n_train=50000):
+    """目标开发集（B 实验室：后 5000 张 + 对比度严重度 2）校正前后的准确率。本机实测 0.383 / 0.394 → 0.485 / 0.487（种子 42 / 0）。"""
+    name = "批次校正（通道均值与标准差对齐到训练集）"
+    try:
+        b, a = float(before), float(after)
+    except (TypeError, ValueError):
+        return report(name, False, "应传入两个数：校正前、校正后的准确率")
+    if not (0 <= b <= 1 and 0 <= a <= 1):
+        return report(name, False, f"准确率应在 0–1 之间，实际 {b}, {a}")
+    if _subset_note(name, n_train):
+        return report(name, a > b, f"校正后应有回升，实际 {b:.3f} → {a:.3f}",
+                      "每个通道：(x − 这一批的均值) / 这一批的标准差 × 训练集标准差 + 训练集均值")
+    return report(name, a - b > 0.05, f"校正后应明显回升（本机约 +10 个百分点），实际 {b:.3f} → {a:.3f}",
+                  "对整批图求每个通道的均值和标准差（axis=(0, 1, 2)，在 0–1 尺度上），"
+                  "再算 (x − 批次均值) / 批次标准差 × 训练集标准差 + 训练集均值")

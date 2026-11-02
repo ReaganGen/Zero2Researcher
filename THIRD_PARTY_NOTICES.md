@@ -1,8 +1,8 @@
 # 第三方声明（Third-Party Notices）
 
-本课程的 notebook 和工具包 `zero2researcher` 改编或照搬了下列开源项目的代码，并随工具包分发了下列数据。按各自许可的要求，本文件保留原作者的版权声明与许可全文。各 notebook 里写有具体出处的位置也会注明来源；本文件只涉及第三方内容，不规定课程自身材料的许可。
+本课程的 notebook 和工具包 `zero2researcher` 改编或照搬了下列开源项目的代码，并随工具包分发了下列数据。按各自许可的要求，本文件保留原作者的版权声明与许可全文。各 notebook 里写有具体出处的位置也会注明来源；本文件只涉及第三方内容；课程自身材料的许可见 [LICENSE](LICENSE)（代码，MIT）与 [LICENSE-CONTENT.md](LICENSE-CONTENT.md)（课程内容，CC BY-NC-SA 4.0）。
 
-许可证原文于 2026-10-31 从各仓库读取，逐字收录。
+许可证原文于 2026-10-31 从各仓库读取，逐字收录；scikit-learn、karpathy/nn-zero-to-hero、hendrycks/robustness 与 Tuning Playbook 四项于 2026-11-01 补登。
 
 ## 一、代码
 
@@ -12,15 +12,24 @@
 | [karpathy/ng-video-lecture](https://github.com/karpathy/ng-video-lecture) | MIT（README 声明） | `gpt.py` 的字符级 GPT 结构、`get_batch`、`estimate_loss` 与训练循环 | 第12周；`zero2researcher/checks/week12.py` |
 | [karpathy/makemore](https://github.com/karpathy/makemore) | MIT | 计数与神经网络 bigram 语言模型；`names.txt` | 第12周；`zero2researcher/datasets/names.txt` |
 | [karpathy/nanoGPT](https://github.com/karpathy/nanoGPT) | MIT | `generate` 里的温度参数写法 | 第12周 |
+| [karpathy/nn-zero-to-hero](https://github.com/karpathy/nn-zero-to-hero)：`lectures/makemore/makemore_part3_bn.ipynb`（提交 73c3fcc） | MIT | 训练诊断：5 × [Linear(100) (+ BatchNorm) + Tanh] 的网络结构、gain 5/3 与末层缩小、`retain_grad`、饱和阈值 0.97、grad:data 与 update:data 的公式和 −3 参照线。改动：输入换成 FashionMNIST，改用 `nn.Sequential` | 第9周；`zero2researcher/checks/week09.py` |
+| [scikit-learn](https://github.com/scikit-learn/scikit-learn) 示例 `examples/ensemble/plot_bias_variance.py`（"Single estimator versus bagging: bias-variance decomposition"） | BSD-3-Clause | 偏差-方差分解的真函数、样本量、噪声设定与四个量的公式。改动：随机数改用 `numpy.random.default_rng`，Bagging 与随机森林固定 `random_state`，分解写成向量化形式，加入随机森林与 σ = 0.3 的树深扫描。另只借思路、未照搬代码：`plot_forest_hist_grad_boosting_comparison`、`plot_ridge_path`、`plot_learning_curve`、`plot_randomized_search`，以及用户指南 1.1（含 1.1.3 Lasso、1.1.10 Bayesian Regression）与 1.9 的公式和约定 | 第4、5、6、9、14周；`zero2researcher/checks/week05.py`（`_bv_f`、`_bv_datasets`、`_decompose`） |
 | [PyTorch Tutorials](https://github.com/pytorch/tutorials)：Learn the Basics、Training a Classifier | BSD-3-Clause | 第8周训练循环的结构；第10周 CIFAR-10 的 `Net` 与训练配置（照搬） | 第8、10周 |
 | [pytorch/examples](https://github.com/pytorch/examples) | BSD-3-Clause | `mnist` 示例的卷积通道配置与归一化常数；`vae` 示例的 `VAE` 类与损失（几乎逐行照搬） | 第8、10、15周；`zero2researcher/checks/week15.py` |
 | [phlippe/uvadlc_notebooks](https://github.com/phlippe/uvadlc_notebooks)：Tutorial 4、6 | MIT | `pathological_curve_loss` 与优化器对比实验；`scaled_dot_product`、`MultiheadAttention`、`EncoderBlock`、`PositionalEncoding` 的代码结构与序列反转任务 | 第9、11周；`zero2researcher/checks/week11.py` |
 | [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric) 官方 Colab 教程 1、2 | MIT | Karate Club 与 Cora 节点分类的模型与训练循环 | 第13周 |
 | [Hugging Face transformers](https://github.com/huggingface/transformers) 文档教程 Text classification | Apache-2.0 | DistilBERT 微调的流程与 `Trainer` 写法 | 第14周 |
-| [Hugging Face Deep RL Course](https://github.com/huggingface/deep-rl-class) Unit 2、4 | Apache-2.0 | 表格型 Q-learning 的函数结构与超参数；REINFORCE 的策略网络与超参数 | 第18周 |
-| [eje24/iap-diffusion-labs](https://github.com/eje24/iap-diffusion-labs)（MIT 6.S184） | MIT | Flow Matching 训练循环的结构；`generative.SmallUNet` 改编自 Lab 3 的 `MNISTUNet` | 第16–17周；`zero2researcher/generative.py` |
+| [Hugging Face Deep RL Course](https://github.com/huggingface/deep-rl-class) Unit 2、4 | Apache-2.0 | 表格型 Q-learning 的函数结构与超参数；REINFORCE 的策略网络与超参数（作业设置 D 的价值网络为课程自写，未改编 HF 代码） | 第18周 |
+| [eje24/iap-diffusion-labs](https://github.com/eje24/iap-diffusion-labs)（MIT 6.S184） | MIT | Flow Matching 训练循环的结构；`generative.SmallUNet` 改编自 Lab 3 的 `MNISTUNet`；第17周“第四种语言：score”对照 Lab 2 Problem 2.4、3.2 的公式（未用代码） | 第16–17周；`zero2researcher/generative.py` |
 | [rtqichen/ffjord](https://github.com/rtqichen/ffjord) | MIT | 棋盘格与双螺旋 2D 数据（`lib/toy_data.py`） | 第16–17周；`zero2researcher/generative.py` |
 | [lucidrains/denoising-diffusion-pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch) | MIT | 随机 Fourier 特征的时间编码（经由 MIT 6.S184 Lab 3 间接使用） | `zero2researcher/generative.py` |
+| [hendrycks/robustness](https://github.com/hendrycks/robustness)：`ImageNet-C/create_c/make_cifar_c.py`（提交 8190fe3） | Apache-2.0 | 高斯噪声、高斯模糊、对比度、亮度 4 种 CIFAR-10-C 腐蚀的公式与严重度常数。改动：改为批量处理、使用带种子的随机数，scikit-image 换成 SciPy 与 Matplotlib 的等价函数（改动写在修改过的文件头与文档字符串里） | 第10周；`zero2researcher/shift.py`（修改过的文件） |
+
+**引用或转述的文字材料**
+
+| 来源 | 许可 | 课程中的用法 | 位置 |
+| --- | --- | --- | --- |
+| [google-research/tuning_playbook](https://github.com/google-research/tuning_playbook)（Varun Godbole、George E. Dahl、Justin Gilmer、Christopher J. Shallue、Zachary Nado，*Deep Learning Tuning Playbook*，2023；提交 7554a51） | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | 科学 / 冗余 / 固定超参数的分类与例子（转述）；"In 1-2 dimensions, grid search is also acceptable"（原文引用）；关于走运与不走运的搜索、准随机搜索的建议（意译）。改动：译成中文，并按课程的实验改写 | 第9周讲义 S4 |
 
 ## 二、随工具包分发的数据
 
@@ -529,6 +538,70 @@ transformers 仓库的版权行：`Copyright 2018- The Hugging Face team. All ri
    See the License for the specific language governing permissions and
    limitations under the License.
 ```
+
+### karpathy/nn-zero-to-hero（MIT）
+
+```text
+MIT License
+
+Copyright (c) 2022 Andrej Karpathy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### scikit-learn（BSD-3-Clause）
+
+```text
+BSD 3-Clause License
+
+Copyright (c) 2007-2026 The scikit-learn developers.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+### hendrycks/robustness（Apache-2.0）
+
+仓库的 LICENSE 是 Apache License 2.0 模板，版权行未填写（`Copyright [yyyy] [name of copyright owner]`）；仓库没有 NOTICE 文件，所以没有需要转载的 NOTICE 内容。它的许可正文与上文“Hugging Face transformers 与 Deep RL Course”一节收录的 Apache License 2.0 全文逐字相同（2026-11-01 核对，只有空白排版不同），这里不再重复。按 Apache-2.0 第 4(b) 条，修改过的文件 `zero2researcher/shift.py` 在文件头写明了改动。
 
 ### palmerpenguins（CC0-1.0）
 

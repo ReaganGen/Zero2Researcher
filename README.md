@@ -22,7 +22,7 @@ Zero2Researcher 写给没有编程基础的实验生物学研究者。你不需�
 课程全程使用 AI 教学中的经典数据集（Iris、Titanic、MNIST、CIFAR-10、IMDB 影评、Tiny Shakespeare、Cora、CartPole……），内容本身不依赖生物学背景；生物学应用留给最后的 Capstone，你可以把学到的方法用在自己实验室的数据上。
 
 - **形式**：60 本 Jupyter notebook，每周一本讲义、一本练习、一本作业；自查函数即时告诉你结果对不对。
-- **时长**：20 周。讲义与练习约 160 小时，另加每周 4–8 小时的作业。
+- **时长**：20 周。讲义与练习约 172 小时，另加每周 4–8 小时的作业。
 - **环境**：Google Colab，只需要浏览器；第 14 周的正式实验用 Colab 免费的 T4 GPU。
 - **产出**：5 次研究实验、1 次论文复现，以及一个从选题走到 4 页报告的 Capstone 研究项目。
 
@@ -114,17 +114,20 @@ ck.gradient_reuse(Value)
 
 | 周 | 实现 | 蓝本 |
 | :-- | :-- | :-- |
+| 4 | 正规方程与 Ridge | NumPy，[`np.linalg.lstsq`](https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html) 文档示例；scikit-learn 用户指南 [1.1 线性模型](https://scikit-learn.org/stable/modules/linear_model.html) |
+| 5 | 偏差-方差分解与梯度提升树 | scikit-learn 示例 [Single estimator versus bagging](https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html) 与 [Comparing Random Forests and Histogram Gradient Boosting](https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_hist_grad_boosting_comparison.html) |
+| 6 | 朴素贝叶斯 vs 逻辑回归的学习曲线 | Ng & Jordan，[On Discriminative vs. Generative Classifiers](https://papers.nips.cc/paper/2001/hash/7b7a53e239400a13bd6be6c91c4f6c4e-Abstract.html)（NIPS 2001）；scikit-learn 用户指南 [1.9 Naive Bayes](https://scikit-learn.org/stable/modules/naive_bayes.html) |
 | 7 | 标量自动微分引擎 | Andrej Karpathy，[micrograd](https://github.com/karpathy/micrograd) |
 | 8 | PyTorch 训练循环 | PyTorch 官方教程，[Learn the Basics](https://docs.pytorch.org/tutorials/beginner/basics/intro.html) |
-| 9 | 优化器、初始化与训练诊断 | Phillip Lippe，[UvA DL Tutorial 4](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial4/Optimization_and_Initialization.html)；Karpathy，[A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/)；Google，[Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) |
-| 10 | CIFAR-10 CNN 与 TextCNN | PyTorch 官方教程，[Training a Classifier](https://docs.pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html)；Kim 2014 |
+| 9 | 优化器、初始化、训练诊断与随机搜索 | Phillip Lippe，[UvA DL Tutorial 4](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial4/Optimization_and_Initialization.html)；Karpathy，[A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) 与 [makemore 第 3 讲](https://github.com/karpathy/nn-zero-to-hero/blob/master/lectures/makemore/makemore_part3_bn.ipynb)；Google，[Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook)；Bergstra & Bengio 2012 |
+| 10 | CIFAR-10 CNN、误差分析与分布偏移、TextCNN | PyTorch 官方教程，[Training a Classifier](https://docs.pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html)；Hendrycks & Dietterich 2019（CIFAR-10-C，代码 [hendrycks/robustness](https://github.com/hendrycks/robustness)）；Kim 2014 |
 | 11 | 注意力与 Transformer 编码器 | Phillip Lippe，[UvA DL Tutorial 6](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial6/Transformers_and_MHAttention.html) |
 | 12 | bigram 与字符级 GPT | Karpathy，[makemore](https://github.com/karpathy/makemore) 与 [ng-video-lecture](https://github.com/karpathy/ng-video-lecture)（`gpt.py`） |
 | 13 | 图卷积网络 | [PyTorch Geometric](https://github.com/pyg-team/pytorch_geometric) 官方教程；Kipf & Welling 2017 |
 | 14 | 微调与 LoRA | Hugging Face，[Text classification](https://huggingface.co/docs/transformers/tasks/sequence_classification)；Hu et al. 2021；[PEFT](https://github.com/huggingface/peft) |
-| 15 | 变分自编码器 | [pytorch/examples](https://github.com/pytorch/examples/tree/main/vae)；Kingma & Welling 2013 |
-| 16⁠–⁠17 | Flow Matching、DDPM 与 classifier-free guidance | MIT 6.S184 [讲义](https://diffusion.csail.mit.edu/)与 [Lab](https://github.com/eje24/iap-diffusion-labs)（Holderrieth & Erives）；Ho, Jain & Abbeel 2020；Ho & Salimans 2022 |
-| 18 | 老虎机、Q-learning、REINFORCE | Sutton & Barto，*Reinforcement Learning* 第 2 章；Hugging Face，[Deep RL Course](https://huggingface.co/learn/deep-rl-course) Unit 2、4 |
+| 15 | 变分自编码器与 MADE | [pytorch/examples](https://github.com/pytorch/examples/tree/main/vae)；Kingma & Welling 2013；Germain et al. 2015（[MADE](https://arxiv.org/abs/1502.03509)）；Burda et al. 2016（[IWAE](https://arxiv.org/abs/1509.00519)） |
+| 16⁠–⁠17 | Flow Matching、DDPM 与 classifier-free guidance | MIT 6.S184 [讲义](https://diffusion.csail.mit.edu/)与 [Lab](https://github.com/eje24/iap-diffusion-labs)（Holderrieth & Erives）；Ho, Jain & Abbeel 2020；Ho & Salimans 2022；Song & Ermon 2019（score） |
+| 18 | 老虎机、Q-learning、价值迭代、REINFORCE | Sutton & Barto，*Reinforcement Learning* 第 2、4 章；Hugging Face，[Deep RL Course](https://huggingface.co/learn/deep-rl-course) Unit 2、4；Russo et al. 2017（[Thompson 采样](https://arxiv.org/abs/1707.02038)）；OpenAI，[Spinning Up](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html) Part 3（价值基线） |
 | 19 | ReAct Agent | Anthropic，[Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)；Yao et al. 2023 |
 
 改编的第三方代码与随工具包分发的数据，其来源、版权声明与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
@@ -138,6 +141,7 @@ ck.gradient_reuse(Value)
 | [`templates/`](templates) | 实验记录、论文阅读工作表、复现计划与报告、Capstone 报告、审稿表 |
 | [`学习指南.md`](学习指南.md) | 学习方法、每周指南、自评表与 Capstone 指南 |
 | [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) | 第三方代码与数据的来源与许可 |
+| [`LICENSE`](LICENSE)、[`LICENSE-CONTENT.md`](LICENSE-CONTENT.md) | 课程代码（MIT）与课程内容（CC BY-NC-SA 4.0）的许可 |
 
 ## 当前状态
 
@@ -153,4 +157,6 @@ ck.gradient_reuse(Value)
 
 ## 许可
 
-课程自身材料的许可尚未确定，确定后会写在这里。第三方代码与数据的来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+- **代码**：课程工具包 `zero2researcher/` 与 notebook 里的代码单元格采用 [MIT](LICENSE)。
+- **课程内容**：notebook 里的文字与图示、学习指南、模板、本 README 与 `assets/` 里的图采用 [CC BY-NC-SA 4.0](LICENSE-CONTENT.md)。你可以自由学习、转载和改编，但要署名，不能用于商业目的，改编后的作品要用同样的许可发布。
+- **第三方内容**：改编的第三方代码与随工具包分发的数据按各自的许可，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

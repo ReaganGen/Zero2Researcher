@@ -240,7 +240,7 @@ def fm_to_ddpm(x_fm, t_fm):
     return c * x_fm, (c * t) ** 2
 
 
-_PARAMS = {"fm": ("eps", "data", "velocity"), "ddpm": ("eps", "data", "v")}
+_PARAMS = {"fm": ("eps", "data", "velocity", "score"), "ddpm": ("eps", "data", "v", "score")}
 
 
 def convert_prediction(pred, x_t, from_param, to_param, *, t_fm=None, alpha_bar=None):
@@ -249,9 +249,13 @@ def convert_prediction(pred, x_t, from_param, to_param, *, t_fm=None, alpha_bar=
     **恰好给一个**时间参数，它同时指明约定：
 
     - ``t_fm=``：FM 约定，x_t = t·data + (1−t)·ε。可用参数化 ``"eps"``（噪声 ε）、``"data"``（干净数据）、
-      ``"velocity"``（FM 速度 u = data − ε，第 16 周网络的输出）。
+      ``"velocity"``（FM 速度 u = data − ε，第 16 周网络的输出）、``"score"``。
     - ``alpha_bar=``：DDPM 约定，x_t = √ᾱ·data + √(1−ᾱ)·ε。可用 ``"eps"``、``"data"``、
-      ``"v"``（Salimans & Ho 2022 的 v-prediction：v = √ᾱ·ε − √(1−ᾱ)·data）。
+      ``"v"``（Salimans & Ho 2022 的 v-prediction：v = √ᾱ·ε − √(1−ᾱ)·data）、``"score"``。
+
+    ``"score"`` 是该约定下 x_t 的分布的 score ∇log p_t(x_t) 的估计。记数据系数 a、噪声系数 σ
+    （FM：a = t、σ = 1 − t；DDPM：a = √ᾱ、σ = √(1−ᾱ)），则 score = −ε/σ；反过来 ε = −σ·score，
+    data = (x_t + σ²·score)/a（Tweedie 公式）。所以"预测噪声"就是在做（按 σ² 加权的）去噪 score matching。
 
     思路：任何一种预测加上 x_t，都能解出 (data, ε) 这一对，再由这一对算出想要的参数化。
     特别提醒：(1) 用 "data" 而不是 "x0" 命名干净数据——FM 文献里 x0 往往指噪声；
@@ -259,6 +263,9 @@ def convert_prediction(pred, x_t, from_param, to_param, *, t_fm=None, alpha_bar=
     (3) 第三套约定（例如 Google DeepMind 博客 *Diffusion Meets Flow Matching*）把速度定义成 ε − x，
     与这里的 data − ε 正好差一个负号。
     (4) 从 ε 求 data 要除以 t（或 √ᾱ），在纯噪声端会把误差放大很多倍。
+    (5) score 依约定而不同：同一对 (data, ε) 在两套约定里 ε 相同，score 却差一个倍数——
+    FM 状态 = DDPM 状态 ÷ k（k = √ᾱ + √(1−ᾱ)，见 ``ddpm_to_fm``），所以 score_FM = k·score_DDPM。
+    在数据端 σ → 0，由 ε 求 score 要除以 σ，会发散。
     """
     if (t_fm is None) == (alpha_bar is None):
         raise ValueError("恰好给一个时间参数：t_fm=（FM 约定，t=0 噪声）或 alpha_bar=（DDPM 约定）")
@@ -283,6 +290,9 @@ def convert_prediction(pred, x_t, from_param, to_param, *, t_fm=None, alpha_bar=
     elif from_param == "velocity":          # u = data − ε，且 a + s = 1
         data = x_t + s * pred
         eps = x_t - a * pred
+    elif from_param == "score":             # score = −ε/s（s 是噪声系数）；data 即 Tweedie (x_t + s²·score)/a
+        eps = -s * pred
+        data = (x_t + s ** 2 * pred) / a
     else:                                   # "v" = a·ε − s·data，且 a² + s² = 1
         data = a * x_t - s * pred
         eps = s * x_t + a * pred
@@ -292,6 +302,8 @@ def convert_prediction(pred, x_t, from_param, to_param, *, t_fm=None, alpha_bar=
         return data
     if to_param == "velocity":
         return data - eps
+    if to_param == "score":
+        return -eps / s
     return a * eps - s * data
 
 

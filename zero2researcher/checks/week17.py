@@ -7,6 +7,8 @@
   原文离散调度 β 从 1e-4 线性增到 0.02、T = 1000；课程代码用它的连续极限
   ᾱ(τ) = exp(−(0.1·τ + 9.95·τ²))，τ ∈ [0, 1]（τ = i/T），与离散的 ∏(1 − β_i) 处处相差 < 1e-3。
 - Flow Matching（第 16 周）：x_t = t·x_data + (1−t)·ε，**t = 0 是噪声**。两套约定的时间方向相反。
+- score（E3c）：记数据系数 a、噪声系数 σ（FM：a = t、σ = 1 − t；DDPM：a = √ᾱ、σ = √(1−ᾱ)），
+  score = −ε/σ，Tweedie：data = (x_t + σ²·score)/a。检查的真值来自高斯数据的闭式，不依赖任何网络。
 - Classifier-free guidance 用 Ho & Salimans 2022（arXiv:2207.12598）原文约定：
   guided = (1 + w)·cond − w·uncond，**w = 0 就是普通的条件模型（不加引导）**。
   MIT 6.S184 讲义用 (1 − w)·uncond + w·cond，两者的关系是 w_MIT = 1 + w_Ho。
@@ -193,6 +195,127 @@ def param_conversion(eps_to_data_ddpm, velocity_to_eps_fm, velocity_to_data_fm):
         if err > 1e-3:
             return report(name, False, f"{fname} 与工具包结果的最大差 {err:.4f}", hint)
     return report(name, True)
+
+
+# ---------- ε ↔ score（E3c） ----------
+def _gauss_case(conv, n=400, seed=0):
+    """数据 ~ N(m, s²I) 时 x_t 仍是高斯，三样东西都有闭式（真值不依赖任何网络）：
+    score ∇log p_t(x) = −(x − a·m)/v，E[ε | x_t] = σ(x − a·m)/v，E[data | x_t] = m + a·s²(x − a·m)/v，
+    其中 v = a²s² + σ²。FM：a = t、σ = 1 − t；DDPM：a = √ᾱ、σ = √(1 − ᾱ)（ᾱ 取与 t 信噪比相同的值）。
+    返回 (x, 时间参数, a, σ, score, E[ε|x], E[data|x])。"""
+    import torch
+    from zero2researcher import generative
+
+    g = torch.Generator().manual_seed(seed)
+    m, s = torch.tensor([1.0, -2.0]), 1.5
+    t = torch.rand(n, 1, generator=g) * 0.9 + 0.05
+    if conv == "fm":
+        a, sig, time_arg = t, 1 - t, t
+    else:
+        ab = generative.fm_to_ddpm_time(t)
+        a, sig, time_arg = ab.sqrt(), (1 - ab).sqrt(), ab
+    x = a * (m + s * torch.randn(n, 2, generator=g)) + sig * torch.randn(n, 2, generator=g)
+    v = a ** 2 * s ** 2 + sig ** 2
+    return (x, time_arg, a, sig, -(x - a * m) / v, sig * (x - a * m) / v,
+            m + a * s ** 2 * (x - a * m) / v)
+
+
+def _close(got, want, tol=1e-4):
+    import torch
+
+    return bool(got.shape == want.shape and torch.allclose(got, want, atol=tol, rtol=tol))
+
+
+def score_conversion(eps_to_score_fm, eps_to_score_ddpm):
+    """E3c：eps_to_score_fm(eps, t) -> −eps/(1 − t)；eps_to_score_ddpm(eps, ab) -> −eps/√(1 − ᾱ)。
+
+    把“最优”的噪声预测 E[ε | x_t]（高斯数据下有闭式）交给你的函数，结果应等于精确的 score ∇log p_t(x_t)
+    （atol = rtol = 1e-4）。专门识别：符号反了、除了 σ²（DDPM 里就是漏了开方）、除了数据系数 a（FM 里写成 t）。"""
+    import torch
+
+    name = "ε → score 的换算"
+    for conv, fn, label in (("fm", eps_to_score_fm, "eps_to_score_fm"),
+                            ("ddpm", eps_to_score_ddpm, "eps_to_score_ddpm")):
+        x, targ, a, sig, score, eps_post, _ = _gauss_case(conv)
+        ok, got = safe_call(f"{name}：{label}", fn, eps_post, targ)
+        if not ok:
+            return False
+        if not isinstance(got, torch.Tensor) or got.shape != score.shape:
+            return report(name, False, f"{label} 应返回形状 {tuple(score.shape)} 的张量，实际 {getattr(got, 'shape', got)!r}",
+                          "逐元素运算即可：eps 是 (n, 2)，时间是 (n, 1)，会自动广播")
+        got = got.float()
+        if _close(got, score):
+            continue
+        hint = "score = −ε / σ，σ 是 x_t 里噪声的系数（FM：1 − t；DDPM：√(1 − ᾱ)）"
+        if _close(got, -score):
+            hint = "符号反了：score 指向“密度更高”的方向，也就是把噪声减掉的方向，所以前面有负号"
+        elif _close(got, score / sig):
+            hint = ("除了 σ²：条件密度对 x 求导得 −(x − a·data)/σ²，但 x − a·data = σ·ε，约掉一个 σ，只剩 −ε/σ"
+                    + ("。DDPM 里 1 − ᾱ 正是 σ²——σ = √(1 − ᾱ)，别漏了开方" if conv == "ddpm" else ""))
+        elif _close(got, -eps_post / a):
+            hint = "除错了系数：要除以噪声的系数 σ，不是数据的系数 a" + (
+                "（FM 里 σ = 1 − t，不是 t）" if conv == "fm" else "（σ = √(1 − ᾱ)，不是 √ᾱ）")
+        elif _close(got, -eps_post):
+            hint = "忘了除以 σ：ε 是标准正态的“单位”噪声，score 还要除以它在 x_t 里的系数 σ"
+        err = float((got - score).abs().max())
+        return report(name, False, f"{label}：与精确 score 的最大差 {err:.4f}", hint)
+    return report(name, True)
+
+
+def tweedie(score_to_data):
+    """E3c：score_to_data(score, x_t, a, sigma) -> (x_t + σ²·score) / a（Tweedie 公式：由 score 得到最优的去噪结果）。
+
+    高斯数据下把精确 score 交给你的函数，结果应等于闭式的 E[data | x_t]（两种约定各查一次，容差 1e-3）。"""
+    import torch
+
+    name = "Tweedie：由 score 求去噪结果 score_to_data"
+    for conv in ("fm", "ddpm"):
+        x, _, a, sig, score, _, data_post = _gauss_case(conv, seed=1)
+        ok, got = safe_call(name, score_to_data, score, x, a, sig)
+        if not ok:
+            return False
+        if not isinstance(got, torch.Tensor) or got.shape != data_post.shape:
+            return report(name, False, f"应返回形状 {tuple(data_post.shape)} 的张量，实际 {getattr(got, 'shape', got)!r}")
+        got = got.float()
+        if _close(got, data_post, 1e-3):
+            continue
+        hint = "先由 score 求噪声 ε = −σ·score，再像 E3 的 eps_to_data 那样求数据：(x_t − σ·ε)/a"
+        if _close(got, (x + sig * score) / a, 1e-3):
+            hint = "σ 少乘了一次：ε = −σ·score，再乘上 x_t 里噪声的系数 σ，一共是 σ²"
+        elif _close(got, (x - sig ** 2 * score) / a, 1e-3):
+            hint = "符号反了：ε = −σ·score，所以 x_t − σ·ε = x_t + σ²·score"
+        elif _close(got, x + sig ** 2 * score, 1e-3):
+            hint = "还要除以数据的系数 a：x_t 里的数据被缩放过"
+        err = float((got - data_post).abs().max())
+        return report(name, False, f"与高斯数据下精确的 E[data | x_t] 最大差 {err:.4f}（{conv.upper()} 约定）", hint)
+    return report(name, True)
+
+
+def score_scale_ratio(ratio, alpha_bar):
+    """E3c：同一对 (data, ε) 在 FM（t）与 DDPM（与 t 信噪比相同的 ᾱ）两种语言里，ε 相同，
+    score 却差一个倍数：ratio = s_FM / s_DDPM 应等于 √ᾱ + √(1 − ᾱ)（rtol 1e-3）。"""
+    import torch
+
+    name = "两种约定下 score 的比值"
+    try:
+        r = torch.as_tensor(ratio).detach().float()
+        ab = torch.as_tensor(alpha_bar).detach().float()
+        want = (ab.sqrt() + (1 - ab).sqrt()).expand_as(r)
+    except (TypeError, ValueError, RuntimeError):
+        return report(name, False, "应传入比值张量 ratio 与对应的 ᾱ（形状能广播，例如 (n, 2) 与 (n, 1)）")
+    if not torch.isfinite(r).all():
+        return report(name, False, "比值里有 NaN / inf", "两个 score 都由同一个 eps 算出、逐元素相除；检查 σ 有没有算成 0")
+    if torch.allclose(r, want, rtol=1e-3):
+        return report(name, True)
+    hint = "FM 状态 = DDPM 状态 ÷ (√ᾱ + √(1 − ᾱ))：x 缩小 k 倍，密度的梯度就放大 k 倍"
+    if torch.allclose(r, 1 / want, rtol=1e-3):
+        hint = "比值倒过来了：题目要的是 s_FM / s_DDPM"
+    elif torch.allclose(r, torch.ones_like(r), atol=1e-3):
+        hint = ("两个 score 一样——ε 相同，但两套约定里噪声的系数 σ 不同（FM：1 − t；DDPM：√(1 − ᾱ)），"
+                "检查两个函数是不是用了同一个 σ")
+    i = int((r - want).abs().flatten().argmax())
+    return report(name, False, f"期望 √ᾱ + √(1 − ᾱ)（这一项是 {float(want.flatten()[i]):.4f}），实际 {float(r.flatten()[i]):.4f}",
+                  hint)
 
 
 # ---------- classifier-free guidance ----------
