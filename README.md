@@ -63,23 +63,23 @@ jupyter lab notebooks
 | 1 | Python I：变量、容器、循环 | — | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week01/01_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week01/01_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week01/01_homework.ipynb) |
 | 2 | Python II：函数、文件、NumPy、绘图 | — | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week02/02_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week02/02_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week02/02_homework.ipynb) |
 | 3 | Python III：Pandas、调试、类 | Python 阶段自测 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week03/03_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week03/03_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week03/03_homework.ipynb) · [自测](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week03/03_checkpoint.ipynb) |
-| 4 | 线性回归与梯度下降 | 数学工作坊 1 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week04/04_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week04/04_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week04/04_homework.ipynb) |
-| 5 | 分类、评估、交叉验证、树模型 | 数据泄漏专题 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week05/05_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week05/05_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week05/05_homework.ipynb) |
-| 6 | 无监督学习与基线阶梯 | 第一条实验记录 · 数学工作坊 2 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week06/06_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week06/06_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week06/06_homework.ipynb) |
-| 7 | 神经网络与 micrograd | 梯度检查 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week07/07_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week07/07_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week07/07_homework.ipynb) |
-| 8 | PyTorch 与训练循环 | Capstone 选题 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week08/08_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week08/08_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week08/08_homework.ipynb) |
-| 9 | 优化、正则化与调试 | 研究实验 1 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week09/09_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week09/09_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week09/09_homework.ipynb) |
-| 10 | CNN 与归纳偏置 | 研究实验 2 · Capstone 提案 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week10/10_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week10/10_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week10/10_homework.ipynb) |
-| 11 | Attention 与 Transformer | 位置编码检验 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week11/11_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week11/11_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week11/11_homework.ipynb) |
-| 12 | 训练小型语言模型 | Capstone 设计自审 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week12/12_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week12/12_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week12/12_homework.ipynb) |
-| 13 | GNN 与预训练概念 | 论文复现启动 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week13/13_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week13/13_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week13/13_homework.ipynb) |
-| 14 | 预训练模型微调与 LoRA | 研究实验 3 · 数学工作坊 3 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week14/14_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week14/14_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week14/14_homework.ipynb) |
-| 15 | 自编码器与 VAE | 复现报告 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week15/15_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week15/15_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week15/15_homework.ipynb) |
-| 16 | Flow Matching | Capstone 基线 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week16/16_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week16/16_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week16/16_homework.ipynb) |
-| 17 | DDPM 与条件生成 | 研究实验 4 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week17/17_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week17/17_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week17/17_homework.ipynb) |
-| 18 | 强化学习 | 研究实验 5 · Capstone 主结果 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week18/18_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week18/18_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week18/18_homework.ipynb) |
-| 19 | AI Agents | Capstone 初稿 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week19/19_lecture.ipynb) · [练习](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week19/19_exercises.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week19/19_homework.ipynb) |
-| 20 | Capstone 报告与课程总结 | 最终报告 | [讲义](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week20/20_lecture.ipynb) · [作业](https://colab.research.google.com/github/ReaganGen/Zero2Researcher/blob/main/notebooks/week20/20_homework.ipynb) |
+| 4 | 线性回归与梯度下降 | 数学工作坊 1 | 即将发布 |
+| 5 | 分类、评估、交叉验证、树模型 | 数据泄漏专题 | 即将发布 |
+| 6 | 无监督学习与基线阶梯 | 第一条实验记录 · 数学工作坊 2 | 即将发布 |
+| 7 | 神经网络与 micrograd | 梯度检查 | 即将发布 |
+| 8 | PyTorch 与训练循环 | Capstone 选题 | 即将发布 |
+| 9 | 优化、正则化与调试 | 研究实验 1 | 即将发布 |
+| 10 | CNN 与归纳偏置 | 研究实验 2 · Capstone 提案 | 即将发布 |
+| 11 | Attention 与 Transformer | 位置编码检验 | 即将发布 |
+| 12 | 训练小型语言模型 | Capstone 设计自审 | 即将发布 |
+| 13 | GNN 与预训练概念 | 论文复现启动 | 即将发布 |
+| 14 | 预训练模型微调与 LoRA | 研究实验 3 · 数学工作坊 3 | 即将发布 |
+| 15 | 自编码器与 VAE | 复现报告 | 即将发布 |
+| 16 | Flow Matching | Capstone 基线 | 即将发布 |
+| 17 | DDPM 与条件生成 | 研究实验 4 | 即将发布 |
+| 18 | 强化学习 | 研究实验 5 · Capstone 主结果 | 即将发布 |
+| 19 | AI Agents | Capstone 初稿 | 即将发布 |
+| 20 | Capstone 报告与课程总结 | 最终报告 | 即将发布 |
 
 ## 怎么学
 
@@ -136,7 +136,7 @@ ck.gradient_reuse(Value)
 
 | 路径 | 内容 |
 | :-- | :-- |
-| [`notebooks/`](notebooks) | 60 本 notebook，按周存放：`weekNN/NN_lecture`、`NN_exercises`、`NN_homework` |
+| [`notebooks/`](notebooks) | 已发布各周的 notebook，按周存放：`weekNN/NN_lecture`、`NN_exercises`、`NN_homework` |
 | [`zero2researcher/`](zero2researcher) | 课程工具包：数据加载、自查函数、多种子统计，以及生成模型与 Agent 的辅助代码 |
 | [`templates/`](templates) | 实验记录、论文阅读工作表、复现计划与报告、Capstone 报告、审稿表 |
 | [`学习指南.md`](学习指南.md) | 学习方法、每周指南、自评表与 Capstone 指南 |
@@ -145,7 +145,7 @@ ck.gradient_reuse(Value)
 
 ## 当前状态
 
-- 第 1–20 周的全部材料已经完成。
+- 目前发布了第 1–3 周，第 4–20 周会陆续发布。
 - 每本 notebook 的含答案版本都在本地 CPU（Python 3.12）上以严格模式完整运行过；工具包的自查函数有单元测试覆盖。
 - 还没有逐本在 Colab 上实测。GPU 上的放大配置（第 10、12、14、16–17 周）与第 13 周三篇复现候选的耗时尚待实测，第 19 周接真实 Claude 的完整评测也还没有运行。
 
